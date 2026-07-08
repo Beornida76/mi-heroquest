@@ -1,192 +1,153 @@
 const HEROES = {
-    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra desde su juventud, su capacidad para infligir daño físico y resistir los ataques más brutales lo convierte en un combatiente temido en el frente de batalla." },
-    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes de las montañas, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas, además de una resistencia natural a los peligros de las mazmorras." },
-    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos, puede alcanzar a sus enemigos antes de que estos logren reaccionar. Combina el combate físico con una pizca de magia arcana." },
-    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Aunque su fragilidad física es evidente, el Mago es el poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante, desintegrando hordas de enemigos con una sola palabra de poder." }
+    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo." },
+    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes." },
+    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Guerrero de gracia sobrenatural." },
+    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos." }
 };
 
+// Bestiario con valores de movimiento correctos según HeroQuest
 const BESTIARIO = {
-    "Goblin": { vida: 1, atk: 2, def: 1, icono: "👺" },
-    "Orco": { vida: 2, atk: 3, def: 2, icono: "👹" },
-    "Fimir": { vida: 3, atk: 3, def: 3, icono: "🦎" },
-    "Guerrero del Caos": { vida: 4, atk: 4, def: 4, icono: "💀" },
-    "Gárgola": { vida: 6, atk: 5, def: 5, icono: "🗿" }
+    "Goblin": { vida: 1, atk: 2, def: 1, mov: 10, icono: "👺" },
+    "Orco": { vida: 2, atk: 3, def: 2, mov: 8, icono: "👹" },
+    "Fimir": { vida: 3, atk: 3, def: 3, mov: 6, icono: "🦎" },
+    "Esqueleto": { vida: 1, atk: 2, def: 2, mov: 6, icono: "💀" },
+    "Zombi": { vida: 2, atk: 2, def: 1, mov: 4, icono: "🧟" },
+    "Momia": { vida: 3, atk: 3, def: 2, mov: 4, icono: "⚰️" },
+    "Guerrero del Caos": { vida: 4, atk: 4, def: 4, mov: 6, icono: "⚔️" },
+    "Gárgola": { vida: 6, atk: 5, def: 5, mov: 6, icono: "🗿" },
+    "Señor de los Brujos": { vida: 6, atk: 5, def: 5, mov: 6, icono: "🧙‍♂️" }
 };
 
-let heroe, FILAS = 19, COLS = 26;
-let mapa = []; 
-let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
-let enemigos = [];
-let turno = "jugador";
+let heroe, FILAS = 19, COLS = 26, mapa = [], explorado = [], enemigos = [], turno = "jugador";
 
-function renderizarDados(cantidad) { return `<span class="dice-icon">${'🎲'.repeat(cantidad)}</span>`; }
-
-const selector = document.getElementById('selector');
-for (let nombre in HEROES) {
-    let h = HEROES[nombre];
-    let div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `<h2>${h.icono} ${nombre}</h2><div class="stats-container"><span>Atk: ${renderizarDados(h.atk)}</span><span>Def: ${renderizarDados(h.def)}</span></div><p style="font-size: 0.9em; margin-top:10px;">${h.desc}</p>`;
-    div.onclick = () => iniciarJuego(nombre);
-    selector.appendChild(div);
+// --- FUNCIONES DE ACCESO ---
+function esPosicionValidaParaEnemigo(x, y) {
+    if (x < 0 || x >= FILAS || y < 0 || y >= COLS) return false;
+    if (mapa[x][y] === 1 || mapa[x][y] === 2) return false; // Muros y puertas cerradas son bloqueos
+    if (x === heroe.x && y === heroe.y) return false; // Héroe es obstáculo
+    if (!explorado[x][y]) return false; // Solo se mueven por lo descubierto
+    return true;
 }
 
-function iniciarJuego(clase) {
-    crearMapa();
-    let suelos = [];
-    for(let i=0; i<FILAS; i++) for(let j=0; j<COLS; j++) if(mapa[i][j] === 0) suelos.push({x: i, y: j});
-    let start = suelos[Math.floor(Math.random() * suelos.length)];
-    heroe = { ...HEROES[clase], nombre: clase, x: start.x, y: start.y, mov: 0 };
-    enemigos = [];
-    let tipos = Object.keys(BESTIARIO);
-    for(let i=0; i<4; i++) { 
-        let pos = suelos[Math.floor(Math.random() * suelos.length)];
-        let tipoNombre = tipos[Math.floor(Math.random() * tipos.length)];
-        if(Math.abs(pos.x - heroe.x) > 3) enemigos.push({nombre: tipoNombre, ...BESTIARIO[tipoNombre], x: pos.x, y: pos.y, vivo: true});
-    }
-    document.getElementById('pantalla-seleccion').style.display = 'none';
-    document.getElementById('juego-contenedor').style.display = 'flex';
-    document.getElementById('nombre-heroe').innerText = heroe.nombre;
-    dibujar();
-}
-
-function crearMapa() {
-    // 1. Llenar todo de muros
-    mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
-    let puertas = [];
-
-    // 2. Generar 5 Salas
-    for(let i=0; i<5; i++) {
-        let w = Math.floor(Math.random() * 4) + 4;
-        let h = Math.floor(Math.random() * 3) + 4;
-        let x = Math.floor(Math.random() * (FILAS - h - 2)) + 1;
-        let y = Math.floor(Math.random() * (COLS - w - 2)) + 1;
-        
-        // Dibujar suelo de la sala
-        for(let r=x; r<x+h; r++) for(let c=y; c<y+w; c++) mapa[r][c] = 0;
-        // Dibujar muros del perímetro
-        for(let r=x; r<x+h; r++) { mapa[r][y] = 1; mapa[r][y+w-1] = 1; }
-        for(let c=y; c<y+w; c++) { mapa[x][c] = 1; mapa[x+h-1][c] = 1; }
-        
-        // Poner puerta en la pared derecha (exactamente en el borde)
-        let doorX = x + Math.floor(h/2);
-        let doorY = y + w - 1;
-        mapa[doorX][doorY] = 2; // Puerta
-        puertas.push({x: doorX, y: doorY});
-    }
-
-    // 3. Conectar puertas (pasillos)
-    for(let i=0; i < puertas.length - 1; i++) {
-        let p1 = puertas[i], p2 = puertas[i+1];
-        // Línea horizontal
-        for(let c = Math.min(p1.y, p2.y); c <= Math.max(p1.y, p2.y); c++) if(mapa[p1.x][c] === 1) mapa[p1.x][c] = 0;
-        // Línea vertical
-        for(let r = Math.min(p1.x, p2.x); r <= Math.max(p1.x, p2.x); r++) if(mapa[r][p2.y] === 0 || mapa[r][p2.y] === 1) mapa[r][p2.y] = 0;
-    }
-}
-
-// ... (El resto de funciones siguen igual: hayEnemigoEn, dibujar, atacar, turnoEnemigo, etc.)
-function hayEnemigoEn(x, y) { return enemigos.find(en => en.vivo && en.x === x && en.y === y); }
-function hayJugadorEn(x, y) { return heroe.x === x && heroe.y === y; }
-
-function lanzarDadosCombate(cantidad, tipo) {
-    let aciertos = 0;
-    for(let i=0; i<cantidad; i++) {
-        let cara = Math.floor(Math.random() * 6) + 1;
-        if (tipo === 'ataque' && cara <= 3) aciertos++;
-        else if (tipo === 'defensa_heroe' && (cara === 4 || cara === 5)) aciertos++;
-        else if (tipo === 'defensa_monstruo' && cara === 6) aciertos++;
-    }
-    return aciertos;
-}
-
-function dibujar() {
-    const tablero = document.getElementById('tablero'); tablero.innerHTML = '';
-    for (let f = 0; f < FILAS; f++) {
-        for (let c = 0; c < COLS; c++) {
-            if (Math.abs(heroe.x - f) <= 2 && Math.abs(heroe.y - c) <= 2) explorado[f][c] = true;
-            const el = document.createElement('div');
-            el.className = 'casilla';
-            if (explorado[f][c]) {
-                el.classList.add('visible');
-                if (mapa[f][c] === 1) el.classList.add('muro');
-                if (mapa[f][c] === 2) { el.classList.add('puerta'); el.innerText = "🚪"; }
-                let en = hayEnemigoEn(f, c);
-                if (en) el.innerText = en.icono;
-            }
-            if (f === heroe.x && c === heroe.y) el.innerText = heroe.icono;
-            tablero.appendChild(el);
-        }
-    }
-    document.getElementById('vida-heroe').innerText = heroe.vida;
-    document.getElementById('mov-heroe').innerText = heroe.mov;
-    document.getElementById('btn-atk').disabled = (turno !== "jugador" || !enemigos.some(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y)));
-    document.getElementById('btn-mov').disabled = (turno !== "jugador" || heroe.mov > 0);
-}
-
-function atacarEnemigo() {
-    let en = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
-    if (!en) return;
-    let ataque = lanzarDadosCombate(heroe.atk, 'ataque');
-    let defensa = lanzarDadosCombate(en.def, 'defensa_monstruo');
-    let dano = Math.max(0, ataque - defensa);
-    en.vida -= dano;
-    document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
-    if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; }
-    dibujar();
-    setTimeout(finalizarTurno, 1000); 
-}
-
-function finalizarTurno() {
+// --- LÓGICA DE TURNO ---
+async function finalizarTurno() {
     if (turno !== "jugador") return;
     turno = "enemigo";
     document.getElementById('log-combate').innerHTML += `<div>--- Turno Enemigo ---</div>`;
     dibujar();
-    setTimeout(ejecutarTurnoEnemigo, 800);
-}
-
-function ejecutarTurnoEnemigo() {
-    enemigos.forEach(en => {
-        if (!en.vivo) return;
-        let distX = heroe.x - en.x;
-        let distY = heroe.y - en.y;
-        if (Math.abs(distX) <= 1 && Math.abs(distY) <= 1) {
-            let ataque = lanzarDadosCombate(en.atk, 'ataque');
-            let defensa = lanzarDadosCombate(heroe.def, 'defensa_heroe');
-            let dano = Math.max(0, ataque - defensa);
-            heroe.vida -= dano;
-            document.getElementById('log-combate').innerHTML += `<div>${en.nombre} ataca: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
-        } else {
-            let movX = distX !== 0 ? (distX > 0 ? 1 : -1) : 0;
-            let movY = distY !== 0 ? (distY > 0 ? 1 : -1) : 0;
-            if (mapa[en.x + movX][en.y] === 0 && !hayJugadorEn(en.x + movX, en.y) && !hayEnemigoEn(en.x + movX, en.y)) en.x += movX;
-            else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY) && !hayEnemigoEn(en.x, en.y + movY)) en.y += movY;
-        }
-    });
-    if (heroe.vida <= 0) {
-        document.getElementById('juego-contenedor').style.display = 'none';
-        document.getElementById('pantalla-derrota').style.display = 'flex';
-        return;
+    
+    // Procesar cada enemigo uno a uno
+    for (let en of enemigos) {
+        if (!en.vivo) continue;
+        await procesarTurnoEnemigo(en);
     }
+    
     turno = "jugador";
     heroe.mov = 0;
     document.getElementById('log-combate').innerHTML += `<div>--- Turno Jugador ---</div>`;
     dibujar();
 }
 
-function tirarDadosMovimiento() {
-    if (turno !== "jugador") return;
-    heroe.mov = Math.floor(Math.random()*6) + Math.floor(Math.random()*6) + 2;
+async function procesarTurnoEnemigo(en) {
+    // 1. Intentar moverse
+    let pasos = 0;
+    while (pasos < en.mov) {
+        let dx = heroe.x - en.x;
+        let dy = heroe.y - en.y;
+        
+        // Si está adyacente, dejar de mover y atacar
+        if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) break;
+
+        // Calcular dirección
+        let mx = dx !== 0 ? (dx > 0 ? 1 : -1) : 0;
+        let my = dy !== 0 ? (dy > 0 ? 1 : -1) : 0;
+
+        // Intentar mover (prioridad X o Y)
+        if (esPosicionValidaParaEnemigo(en.x + mx, en.y)) {
+            en.x += mx;
+        } else if (esPosicionValidaParaEnemigo(en.x, en.y + my)) {
+            en.y += my;
+        } else {
+            break; // Bloqueado
+        }
+        pasos++;
+        dibujar();
+        await new Promise(r => setTimeout(r, 100)); // Efecto visual
+    }
+
+    // 2. Intentar Atacar si está adyacente
+    let dx = heroe.x - en.x;
+    let dy = heroe.y - en.y;
+    if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
+        let atk = Math.floor(Math.random() * 6) + 1;
+        let def = Math.floor(Math.random() * 6) + 1;
+        if (atk > def) {
+            heroe.vida--;
+            document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} ataca y hiere!</div>`;
+        } else {
+            document.getElementById('log-combate').innerHTML += `<div>${en.nombre} falla su ataque.</div>`;
+        }
+        dibujar();
+    }
+}
+
+// --- GESTIÓN DE MAPA Y JUEGO ---
+function crearMapa() {
+    mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
+    let puertas = [];
+    for(let i=0; i<5; i++) {
+        let w = Math.floor(Math.random() * 4) + 4;
+        let h = Math.floor(Math.random() * 3) + 4;
+        let x = Math.floor(Math.random() * (FILAS - h - 2)) + 1;
+        let y = Math.floor(Math.random() * (COLS - w - 2)) + 1;
+        for(let r=x; r<x+h; r++) for(let c=y; c<y+w; c++) mapa[r][c] = 0;
+        let px = x + Math.floor(h/2); let py = y + w - 1;
+        mapa[px][py] = 2; // Puerta cerrada
+        puertas.push({x: px, y: py});
+    }
+    // Pasillos (asegurar que conectan)
+    for(let i=0; i < puertas.length - 1; i++) {
+        let p1 = puertas[i], p2 = puertas[i+1];
+        let r = p1.x; let c = p1.y;
+        while(c !== p2.y) { c += (p2.y > c ? 1 : -1); if(mapa[r][c] === 1) mapa[r][c] = 0; }
+        while(r !== p2.x) { r += (p2.x > r ? 1 : -1); if(mapa[r][c] === 1) mapa[r][c] = 0; }
+    }
+}
+
+function iniciarJuego(clase) {
+    explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
+    crearMapa();
+    // Colocación inicial
+    let suelos = []; for(let i=0; i<FILAS; i++) for(let j=0; j<COLS; j++) if(mapa[i][j] === 0) suelos.push({x: i, y: j});
+    let start = suelos[Math.floor(Math.random() * suelos.length)];
+    heroe = { ...HEROES[clase], nombre: clase, x: start.x, y: start.y, mov: 0 };
+    
+    // Spawn enemigos
+    enemigos = [];
+    for(let i=0; i<4; i++) { 
+        let pos = suelos[Math.floor(Math.random() * suelos.length)];
+        let tipo = Object.keys(BESTIARIO)[Math.floor(Math.random() * Object.keys(BESTIARIO).length)];
+        enemigos.push({nombre: tipo, ...BESTIARIO[tipo], x: pos.x, y: pos.y, vivo: true});
+    }
+    document.getElementById('pantalla-seleccion').style.display = 'none';
+    document.getElementById('juego-contenedor').style.display = 'flex';
     dibujar();
 }
 
+// [MANTENER las funciones dibujar, atacarEnemigo y Event Listeners que tenías, 
+// solo actualiza el flujo de teclado para respetar el turno]
 window.addEventListener('keydown', (e) => {
     if(turno !== "jugador" || heroe.mov <= 0) return;
     let nx = heroe.x, ny = heroe.y;
     if(e.key === 'ArrowUp') nx--; if(e.key === 'ArrowDown') nx++;
     if(e.key === 'ArrowLeft') ny--; if(e.key === 'ArrowRight') ny++;
-    if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS) {
-        if (mapa[nx][ny] === 2) { mapa[nx][ny] = 3; heroe.mov--; dibujar(); }
-        else if ((mapa[nx][ny] === 0 || mapa[nx][ny] === 3) && !hayEnemigoEn(nx, ny)) { heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar(); }
+    
+    if(mapa[nx][ny] === 2) { mapa[nx][ny] = 3; heroe.mov--; } // Abre puerta
+    else if(mapa[nx][ny] === 0 || mapa[nx][ny] === 3) { heroe.x = nx; heroe.y = ny; heroe.mov--; }
+    
+    dibujar();
+    if(heroe.mov <= 0) {
+        document.getElementById('log-combate').innerHTML += `<div>Turno agotado.</div>`;
+        finalizarTurno();
     }
 });

@@ -2,13 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>War Quest - Versión Completa con Combate</title>
+    <title>War Quest - Sistema de Combate Visual</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="pantalla-seleccion">
         <h1>War Quest</h1>
-        <p class="subtitulo">Selecciona a tu héroe para adentrarte en la mazmorra procedural:</p>
+        <p class="subtitulo">Selecciona a tu héroe para entrar a la mazmorra:</p>
         <div id="selector" class="grid-heroe"></div>
     </div>
 
@@ -20,18 +20,23 @@
                 <h2 id="nombre-heroe"></h2>
                 <p id="desc-heroe" class="descripcion"></p>
                 <div class="stats-box">
-                    <p>❤️ Vida Actual: <span id="vida-heroe" class="stat-val"></span></p>
-                    <p>👣 Movimiento Restante: <span id="mov-heroe" class="stat-val"></span></p>
+                    <p>❤️ Tu Vida Actual: <span id="vida-heroe" class="stat-val"></span></p>
+                    <p>👣 Pasos Restantes: <span id="mov-heroe" class="stat-val"></span></p>
                 </div>
+            </div>
+
+            <div id="pantalla-combate-inmediato">
+                <h4>⚔️ PANEL DE COMBATE RECIENTE ⚔️</h4>
+                <div id="resultado-dados-pantalla">Esperando que comience la batalla...</div>
             </div>
             
             <div class="controles">
-                <button id="btn-dados" onclick="tirarDados()">🎲 Tirar Dados Movimiento</button>
-                <button id="btn-atacar" onclick="atacarEnemigoAdyacente()">⚔️ ACCIÓN: Atacar</button>
-                <button id="btn-turno" onclick="finalizarTurno()">🛡️ Finalizar Turno</button>
+                <button id="btn-dados" onclick="tirarDados()">🎲 Lanzar Dados Movimiento</button>
+                <button id="btn-atacar" onclick="atacarEnemigoAdyacente()">⚔️ ACCIÓN: Atacar Enemigo</button>
+                <button id="btn-turno" onclick="finalizarTurno()">🛡️ Terminar Mi Turno</button>
             </div>
             
-            <h3>Historial de la Mazmorra</h3>
+            <h3>Historial General</h3>
             <div id="log-combate"></div>
         </div>
     </div>

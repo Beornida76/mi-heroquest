@@ -1,32 +1,175 @@
-body { background: #1a1a1a; color: #eee; font-family: sans-serif; margin: 20px; }
-
-#tablero { 
-    display: grid; 
-    grid-template-columns: repeat(26, 30px); 
-    grid-template-rows: repeat(19, 30px); 
-    border: 4px solid #444;
-    background-color: #000;
+/* Estilos Generales y Tipografía de Fantasía Oscura */
+body { 
+    background-color: #141414; 
+    color: #f5f5f5; 
+    font-family: 'Georgia', serif; 
+    margin: 20px;
+    display: flex;
+    justify-content: center;
 }
 
+h1 {
+    color: #d4af37;
+    text-align: center;
+    text-shadow: 2px 2px 4px #000;
+    font-size: 3em;
+    margin-bottom: 10px;
+}
+
+.subtitulo {
+    text-align: center;
+    color: #bbb;
+    font-style: italic;
+    margin-bottom: 30px;
+}
+
+/* Tablero de Juego en Cuadrícula */
+#tablero { 
+    display: grid; 
+    grid-template-columns: repeat(26, 32px); 
+    grid-template-rows: repeat(19, 32px); 
+    border: 4px solid #2c2512;
+    background-color: #050505;
+    box-shadow: 0px 0px 20px rgba(0,0,0,0.8);
+}
+
+/* Casillas Individuales */
 .casilla { 
-    width: 30px; 
-    height: 30px; 
+    width: 32px; 
+    height: 32px; 
     display: flex; 
     align-items: center; 
     justify-content: center;
-    border: 1px solid #111; 
+    font-size: 1.2em;
+    box-sizing: border-box;
+    border: 1px solid #1a1a1a; 
 }
 
-/* Visibilidad y Terreno */
-.oscuridad { background: #000; } 
-.visible { background: #2c3e50; } /* Suelo transitable */
-.muro { background: #5d6d7e !important; border: 1px solid #34495e; } /* Muros */
-.puerta { background: #d35400 !important; border: 1px solid #a04000; } /* Puertas */
+/* Tipos de Terreno y Niebla de Guerra */
+.oscuridad { 
+    background-color: #000000; 
+} 
 
-/* Diseño UI */
-.grid-heroe { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
-.card { background: #222; border: 2px solid #555; padding: 15px; cursor: pointer; width: 200px; text-align: center; }
-.card:hover { border-color: #d4af37; }
-#juego-contenedor { display: flex; gap: 20px; }
-.panel-lateral { width: 300px; padding: 20px; border-left: 2px solid #333; background: #222; }
-#log-combate { height: 300px; overflow-y: scroll; background: #000; margin-top: 20px; padding: 10px; font-size: 0.85em; }
+.visible { 
+    background-color: #1c2833; /* Suelo transitable (Azul/Gris oscuro) */
+} 
+
+.muro { 
+    background-color: #566573 !important; /* Muros de piedra (Gris claro) */
+    border: 1px solid #2c3e50;
+} 
+
+.puerta { 
+    background-color: #d35400 !important; /* Puertas cerradas (Naranja madera) */
+    border: 2px dashed #f39c12;
+}
+
+/* Interfaz de Selección */
+.grid-heroe { 
+    display: flex; 
+    gap: 30px; 
+    justify-content: center; 
+    margin-top: 20px; 
+}
+
+.card { 
+    background: #222; 
+    border: 2px solid #444; 
+    border-radius: 8px;
+    padding: 20px; 
+    cursor: pointer; 
+    width: 220px; 
+    text-align: center; 
+    transition: all 0.3s ease;
+}
+
+.card:hover { 
+    border-color: #d4af37; 
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(212,175,55,0.2);
+}
+
+.card h3 {
+    color: #d4af37;
+    margin-top: 5px;
+}
+
+/* Panel Lateral de Estado */
+#juego-contenedor { 
+    display: flex; 
+    gap: 25px; 
+}
+
+.panel-lateral { 
+    width: 320px; 
+    padding: 20px; 
+    border: 2px solid #2c2512; 
+    background: #1a1a1a; 
+    border-radius: 8px;
+}
+
+.descripcion {
+    font-style: italic;
+    color: #aaa;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+.stats-box {
+    background: #111;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #333;
+    margin-bottom: 20px;
+}
+
+.stat-val {
+    font-weight: bold;
+    color: #d4af37;
+}
+
+/* Botones */
+.controles button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #2c2512;
+    border: 1px solid #d4af37;
+    color: #d4af37;
+    font-family: 'Georgia', serif;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.controles button:hover {
+    background: #d4af37;
+    color: #000;
+}
+
+.controles button:disabled {
+    background: #222;
+    border-color: #444;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Registro de Combate */
+#log-combate { 
+    height: 250px; 
+    overflow-y: auto; 
+    background: #0a0a0a; 
+    border: 1px solid #333;
+    padding: 10px; 
+    font-size: 0.85em; 
+    font-family: monospace;
+    color: #00ff00;
+    border-radius: 4px;
+}
+
+.log-ataque { color: #ffaa00; }
+.log-defensa { color: #00aaff; }
+.log-muerte { color: #ff0000; font-weight: bold; }
+.log-sistema { color: #ffff00; }

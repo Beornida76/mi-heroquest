@@ -6,15 +6,19 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Pantalla de Selección de Personajes -->
     <div id="pantalla-seleccion">
         <h1>War Quest</h1>
         <p class="subtitulo">Selecciona a tu héroe para entrar a la mazmorra:</p>
         <div id="selector" class="grid-heroe"></div>
     </div>
 
+    <!-- Contenedor Principal del Juego -->
     <div id="juego-contenedor" style="display:none;">
+        <!-- Tablero Grid del mapa -->
         <div id="tablero"></div>
         
+        <!-- Panel de Control Lateral -->
         <div class="panel-lateral">
             <div id="info-heroe">
                 <h2 id="nombre-heroe"></h2>
@@ -25,6 +29,7 @@
                 </div>
             </div>
 
+            <!-- Pantalla Visual de Combate Inmediato -->
             <div id="pantalla-combate-inmediato">
                 <h4>⚔️ PANEL DE COMBATE RECIENTE ⚔️</h4>
                 <div id="resultado-dados-pantalla">Esperando que comience la batalla...</div>
@@ -39,6 +44,13 @@
             <h3>Historial General</h3>
             <div id="log-combate"></div>
         </div>
+    </div>
+
+    <!-- NUEVA PANTALLA DE MUERTE / GAME OVER -->
+    <div id="pantalla-muerte" style="display:none;">
+        <h1 class="texto-sangre">¡HAS CAÍDO EN COMBATE!</h1>
+        <p class="desc-muerte">La oscuridad de la mazmorra ha devorado tu alma. Tu cuerpo yace inerte en un charco de sangre sobre la fría piedra, sumándose a los incontables cadáveres de aquellos necios que fracasaron antes que tú...</p>
+        <button class="btn-sangriento" onclick="volverAlMenu()">Despertar en la posada (Volver a intentar)</button>
     </div>
 
     <script src="script.js"></script>

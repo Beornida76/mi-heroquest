@@ -1,25 +1,43 @@
 const HEROES = {
-    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "Maestro del combate cuerpo a cuerpo.", info: "Ataque: 3 dados | Defensa: 2 dados" },
-    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Experto en exploración y trampas.", info: "Ataque: 2 dados | Defensa: 2 dados" },
-    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Ágil y diestro, maestro de la agilidad.", info: "Ataque: 2 dados | Defensa: 2 dados" },
-    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de secretos arcanos.", info: "Ataque: 1 dado | Defensa: 2 dados" }
+    "Guerrero": { 
+        vida: 8, atk: 3, def: 2, icono: "🛡️", 
+        desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra desde su juventud, su capacidad para infligir daño físico y resistir los ataques más brutales lo convierte en un combatiente temido por las fuerzas del Caos. No conoce el miedo.",
+        info: "Atacante robusto." 
+    },
+    "Enano": { 
+        vida: 7, atk: 2, def: 2, icono: "⛏️", 
+        desc: "Descendiente de las antiguas estirpes de las montañas, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas. Su estoicismo y su constitución férrea le permiten aguantar en el fragor de la batalla.",
+        info: "Especialista en trampas." 
+    },
+    "Elfo": { 
+        vida: 6, atk: 2, def: 2, icono: "🏹", 
+        desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos, puede alcanzar a sus enemigos antes de que estos logren reaccionar. Su destreza le permite equilibrar el combate sin perder su elegancia.",
+        info: "Rápido y equilibrado." 
+    },
+    "Mago": { 
+        vida: 4, atk: 1, def: 2, icono: "🧙", 
+        desc: "Aunque su fragilidad física es evidente, el Mago es el poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante. Un guía esencial para el grupo, cuya mente es su arma más peligrosa.",
+        info: "Maestro arcano." 
+    }
 };
 
-let heroe, FILAS = 19, COLS = 26;
-let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
-let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
-let enemigos = [{nombre: "Orco", vida: 2, atk: 3, def: 1, icono: "👹", x: 4, y: 4, vivo: true}];
+function renderizarDados(cantidad) { return `<span class="dice-icon">${'🎲'.repeat(cantidad)}</span>`; }
 
-// Inicializar el selector al cargar
+// Inicializar Selección
 const selector = document.getElementById('selector');
 for (let nombre in HEROES) {
     let h = HEROES[nombre];
     let div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<h2>${h.icono} ${nombre}</h2><div class="stats">${h.info}</div><div class="desc">${h.desc}</div>`;
+    div.innerHTML = `<h2>${h.icono} ${nombre}</h2><div class="stats-container"><span>Atk: ${renderizarDados(h.atk)}</span><span>Def: ${renderizarDados(h.def)}</span></div><div class="desc">${h.desc}</div>`;
     div.onclick = () => iniciarJuego(nombre);
     selector.appendChild(div);
 }
+
+let heroe, FILAS = 19, COLS = 26;
+let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
+let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
+let enemigos = [{nombre: "Orco", vida: 2, atk: 3, def: 1, icono: "👹", x: 4, y: 4, vivo: true}];
 
 function iniciarJuego(clase) {
     heroe = { ...HEROES[clase], nombre: clase, x: 2, y: 2, mov: 0 };
@@ -40,9 +58,10 @@ function lanzarDadosCombate(cantidad, tipo) {
     let aciertos = 0;
     for(let i=0; i<cantidad; i++) {
         let cara = Math.floor(Math.random() * 6) + 1;
-        if (tipo === 'ataque' && cara <= 3) aciertos++; // Calavera
-        else if (tipo === 'defensa_heroe' && (cara === 4 || cara === 5)) aciertos++; // Escudo Blanco
-        else if (tipo === 'defensa_monstruo' && cara === 6) aciertos++; // Escudo Negro
+        // HeroQuest: Calavera (1-3), Escudo Blanco (4-5), Escudo Negro (6)
+        if (tipo === 'ataque') { if(cara <= 3) aciertos++; }
+        else if (tipo === 'defensa_heroe') { if(cara === 4 || cara === 5) aciertos++; }
+        else if (tipo === 'defensa_monstruo') { if(cara === 6) aciertos++; }
     }
     return aciertos;
 }

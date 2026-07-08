@@ -2,39 +2,50 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>HeroQuest - Selección de Personaje</title>
+    <title>War Quest</title>
     <style>
-        body { background-color: #111; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
-        #pantalla-seleccion { text-align: center; margin-top: 50px; }
-        .grid-heroe { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
-        .card { background: #222; padding: 20px; border: 2px solid #444; cursor: pointer; border-radius: 8px; }
-        .card:hover { border-color: #007bff; }
+        body { background-color: #050505; color: #d1cbc1; font-family: 'Georgia', serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
         
-        .contenedor { display: none; gap: 20px; padding: 20px; }
+        /* Pantalla de Selección */
+        #pantalla-seleccion { text-align: center; padding: 40px; max-width: 950px; }
+        h1 { font-size: 4.5em; color: #c69c6d; text-transform: uppercase; text-shadow: 4px 4px 8px #000; margin-bottom: 10px; }
+        .intro-text { font-style: italic; margin-bottom: 40px; font-size: 1.4em; color: #e0d0b0; line-height: 1.6; }
+        .grid-heroe { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
+        .card { background: #1a1a1a; padding: 25px; border: 2px solid #555; cursor: pointer; transition: 0.4s; text-align: left; border-radius: 8px; }
+        .card:hover { border-color: #c69c6d; background: #252525; transform: scale(1.02); }
+        .card h2 { margin-top: 0; color: #c69c6d; border-bottom: 1px solid #444; padding-bottom: 10px; font-size: 1.8em; }
+        .stats { font-size: 1em; margin: 10px 0; color: #e0d0b0; font-weight: bold; }
+        .desc { font-size: 0.95em; color: #a0a0a0; line-height: 1.5; margin-top: 10px; }
+
+        /* Contenedor del Juego */
+        #juego-contenedor { display: none; gap: 20px; padding: 20px; }
         #tablero { display: grid; grid-template-columns: repeat(26, 25px); grid-template-rows: repeat(19, 25px); gap: 1px; background-color: #000; padding: 5px; border: 2px solid #444; }
         .casilla { width: 25px; height: 25px; background-color: #000; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .visible { background-color: #222; }
-        .muro { background-color: #555; }
-        .panel { width: 280px; background: #222; padding: 15px; border-radius: 8px; }
+        .muro { background-color: #333; }
+        .panel { width: 280px; background: #111; padding: 15px; border: 1px solid #333; }
         #log-combate { height: 150px; overflow-y: auto; background: #000; padding: 10px; font-size: 12px; margin-top: 10px; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
     <div id="pantalla-seleccion">
-        <h1>Elige tu Héroe</h1>
+        <h1>War Quest</h1>
+        <p class="intro-text">
+            "El mundo se sumerge en las sombras. Las hordas del Caos, comandadas por el malvado Zargon, han usurpado las fortalezas ancestrales. 
+            Solo un grupo de valientes, dotados de habilidades únicas, se atreven a adentrarse en la oscuridad. 
+            ¡Prepárate para la aventura, desenvaina tu acero y reclama tu destino en las profundidades de la mazmorra!"
+        </p>
         <div class="grid-heroe" id="selector"></div>
     </div>
 
-    <div class="contenedor" id="juego">
+    <div id="juego-contenedor">
         <div class="panel">
-            <h2 id="turno-txt">Turno: Jugador</h2>
-            <p><strong><span id="nombre-heroe"></span></strong></p>
+            <h2 id="turno-txt" style="color: #c69c6d;">Turno: Jugador</h2>
+            <p><strong>Héroe: <span id="nombre-heroe"></span></strong></p>
             <p>Vida: <span id="vida-heroe"></span> | Mov: <span id="mov-heroe">0</span></p>
             <button id="btn-mov" onclick="tirarDadosMovimiento()">Tirar Dados</button>
             <button id="btn-atk" onclick="atacarEnemigo()" disabled>¡Atacar!</button>
-            <h3>Enemigos</h3>
-            <div id="lista-enemigos"></div>
             <h3>Bitácora</h3>
             <div id="log-combate"></div>
         </div>
@@ -43,35 +54,21 @@
 
     <script>
         const HEROES = {
-            "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️" },
-            "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️" },
-            "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹" },
-            "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙" }
+            "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra, su capacidad para infligir daño y resistir los ataques más brutales lo convierte en un combatiente temido. No conoce el miedo.", info: "Dados de Ataque: 3 | Dados de Defensa: 2" },
+            "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas. Su estoicismo le permite aguantar en el fragor de la batalla.", info: "Dados de Ataque: 2 | Dados de Defensa: 2" },
+            "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos, puede alcanzar a sus enemigos antes de que estos logren reaccionar. Su destreza le permite equilibrar el combate.", info: "Dados de Ataque: 2 | Dados de Defensa: 2" },
+            "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante. Un guía esencial, cuya mente es el arma más peligrosa contra las fuerzas del Caos.", info: "Dados de Ataque: 1 | Dados de Defensa: 2" }
         };
 
-        const BESTIARIO = {
-            "Orco": { vida: 1, atk: 3, def: 2, icono: "👹" },
-            "Goblin": { vida: 1, atk: 2, def: 1, icono: "👺" },
-            "Fimir": { vida: 3, atk: 3, def: 3, icono: "🐊" }
-        };
-
-        let heroe = null;
-        let FILAS = 19, COLS = 26;
-        let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
-        let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
-        let enemigos = [
-            { ...BESTIARIO["Orco"], nombre: "Orco", x: 2, y: 2, vivo: true },
-            { ...BESTIARIO["Goblin"], nombre: "Goblin", x: 16, y: 2, vivo: true },
-            { ...BESTIARIO["Fimir"], nombre: "Fimir", x: 10, y: 9, vivo: true }
-        ];
-        let turno = "jugador";
-
-        // Inicializar pantalla de selección
+        let heroe, mapa = Array.from({ length: 19 }, () => Array(26).fill(1)), explorado = Array.from({ length: 19 }, () => Array(26).fill(false));
+        
+        // Inicializar Selector
         const selector = document.getElementById('selector');
         for (let nombre in HEROES) {
+            let h = HEROES[nombre];
             let div = document.createElement('div');
             div.className = 'card';
-            div.innerHTML = `<h2>${HEROES[nombre].icono} ${nombre}</h2><p>Vida: ${HEROES[nombre].vida}<br>Atk: ${HEROES[nombre].atk} Def: ${HEROES[nombre].def}</p>`;
+            div.innerHTML = `<h2>${h.icono} ${nombre}</h2><div class="stats">${h.info}</div><div class="desc">${h.desc}</div>`;
             div.onclick = () => iniciarJuego(nombre);
             selector.appendChild(div);
         }
@@ -79,10 +76,9 @@
         function iniciarJuego(clase) {
             heroe = { ...HEROES[clase], nombre: clase, x: 2, y: 2, mov: 0 };
             document.getElementById('pantalla-seleccion').style.display = 'none';
-            document.getElementById('juego').style.display = 'flex';
+            document.getElementById('juego-contenedor').style.display = 'flex';
             document.getElementById('nombre-heroe').innerText = heroe.nombre;
-            crearMapa();
-            dibujar();
+            crearMapa(); dibujar();
         }
 
         function crearMapa() {
@@ -92,110 +88,33 @@
             for(let j=4; j<22; j++) mapa[9][j] = 0;
         }
 
-        function lanzarDados(numDados, esHeroe) {
-            let calaveras = 0, escudos = 0;
-            for(let i = 0; i < numDados; i++) {
-                let cara = Math.floor(Math.random() * 6);
-                if (cara < 3) calaveras++;
-                else if (esHeroe && (cara === 3 || cara === 4)) escudos++;
-                else if (!esHeroe && cara === 5) escudos++;
-            }
-            return { calaveras, escudos };
-        }
-
-        function esAdyacente(a, b) {
-            const dx = Math.abs(a.x - b.x); const dy = Math.abs(a.y - b.y);
-            return (dx === 1 && dy === 0) || (dx === 0 && dy === 1);
-        }
-
-        function log(msg) {
-            const div = document.getElementById('log-combate');
-            div.innerHTML += `<div>> ${msg}</div>`;
-            div.scrollTop = div.scrollHeight;
-        }
-
         function dibujar() {
-            const tablero = document.getElementById('tablero');
-            tablero.innerHTML = '';
-            for (let f = 0; f < FILAS; f++) {
-                for (let c = 0; c < COLS; c++) {
-                    if (Math.abs(heroe.x - f) <= 1 && Math.abs(heroe.y - c) <= 1) explorado[f][c] = true;
+            const tablero = document.getElementById('tablero'); tablero.innerHTML = '';
+            for (let f = 0; f < 19; f++) {
+                for (let c = 0; c < 26; c++) {
                     const el = document.createElement('div');
-                    el.className = 'casilla';
-                    if (explorado[f][c]) {
-                        el.classList.add('visible');
-                        if (mapa[f][c] === 1) el.classList.add('muro');
-                        enemigos.forEach(en => { if(en.x === f && en.y === c && en.vivo) el.innerText = en.icono; });
-                    }
+                    el.className = 'casilla ' + (mapa[f][c] === 1 ? 'muro' : 'visible');
                     if (f === heroe.x && c === heroe.y) el.innerText = heroe.icono;
                     tablero.appendChild(el);
                 }
             }
-            let enemigoCerca = enemigos.find(en => en.vivo && esAdyacente(heroe, en));
-            document.getElementById('btn-atk').disabled = !(turno === "jugador" && enemigoCerca);
-            document.getElementById('lista-enemigos').innerHTML = enemigos.filter(e => e.vivo).map(e => `${e.nombre}: ${e.vida} PV`).join('<br>');
-            document.getElementById('mov-heroe').innerText = heroe.mov;
             document.getElementById('vida-heroe').innerText = heroe.vida;
+            document.getElementById('mov-heroe').innerText = heroe.mov;
         }
 
         function tirarDadosMovimiento() {
             heroe.mov = Math.floor(Math.random()*6) + Math.floor(Math.random()*6) + 2;
-            log(`Movimiento: ${heroe.mov}`);
             document.getElementById('btn-mov').disabled = true;
             dibujar();
         }
 
-        function atacarEnemigo() {
-            let en = enemigos.find(en => en.vivo && esAdyacente(heroe, en));
-            let atk = lanzarDados(heroe.atk, true);
-            let def = lanzarDados(en.def, false);
-            let dano = Math.max(0, atk.calaveras - def.escudos);
-            en.vida -= dano;
-            log(`Atacas ${en.nombre}: ${atk.calaveras} vs ${def.escudos}. Daño: ${dano}`);
-            if(en.vida <= 0) { en.vivo = false; log(`${en.nombre} eliminado.`); }
-            finalizarTurno();
-        }
-
-        function finalizarTurno() {
-            heroe.mov = 0; turno = "enemigo";
-            document.getElementById('turno-txt').innerText = "Turno: Enemigo";
-            dibujar();
-            setTimeout(turnoEnemigo, 1000);
-        }
-
-        function turnoEnemigo() {
-            enemigos.forEach(en => {
-                if(!en.vivo) return;
-                if(esAdyacente(en, heroe)) {
-                    let atk = lanzarDados(en.atk, false);
-                    let def = lanzarDados(heroe.def, true);
-                    let dano = Math.max(0, atk.calaveras - def.escudos);
-                    heroe.vida -= dano;
-                    log(`${en.nombre} ataca: ${atk.calaveras} vs ${def.escudos}. Daño: ${dano}`);
-                } else {
-                    if(en.x < heroe.x && mapa[en.x+1][en.y]===0) en.x++;
-                    else if(en.x > heroe.x && mapa[en.x-1][en.y]===0) en.x--;
-                    else if(en.y < heroe.y && mapa[en.x][en.y+1]===0) en.y++;
-                    else if(en.y > heroe.y && mapa[en.x][en.y-1]===0) en.y--;
-                }
-            });
-            turno = "jugador";
-            document.getElementById('turno-txt').innerText = "Turno: Jugador";
-            document.getElementById('btn-mov').disabled = false;
-            if(heroe.vida <= 0) { alert("¡Has muerto!"); location.reload(); }
-            dibujar();
-        }
-
         window.addEventListener('keydown', (e) => {
-            if(turno !== "jugador" || heroe.mov <= 0) return;
+            if(heroe.mov <= 0) return;
             let nx = heroe.x, ny = heroe.y;
             if(e.key === 'ArrowUp') nx--; if(e.key === 'ArrowDown') nx++;
             if(e.key === 'ArrowLeft') ny--; if(e.key === 'ArrowRight') ny++;
-            if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS && mapa[nx][ny]===0 && !enemigos.find(en => en.vivo && en.x===nx && en.y===ny)) {
-                heroe.x = nx; heroe.y = ny; heroe.mov--;
-                if(heroe.mov === 0) finalizarTurno();
-                dibujar();
-            }
+            if(mapa[nx][ny] === 0) { heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar(); }
+            if(heroe.mov === 0) document.getElementById('btn-mov').disabled = false;
         });
     </script>
 </body>

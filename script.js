@@ -1,8 +1,8 @@
 const HEROES = {
-    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra desde su juventud, su capacidad para infligir daño físico y resistir los ataques más brutales lo convierte en un combatiente temido en el frente de batalla." },
-    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes de las montañas, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas, además de una resistencia natural a los peligros de las mazmorras." },
-    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos, puede alcanzar a sus enemigos antes de que estos logren reaccionar. Combina el combate físico con una pizca de magia arcana." },
-    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Aunque su fragilidad física es evidente, el Mago es el poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante, desintegrando hordas de enemigos con una sola palabra de poder." }
+    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo." },
+    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes de las montañas." },
+    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural." },
+    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "El poseedor de los secretos arcanos." }
 };
 
 const BESTIARIO = {
@@ -35,20 +35,15 @@ function iniciarJuego(clase) {
     crearMapa();
     let suelos = [];
     for(let i=0; i<FILAS; i++) for(let j=0; j<COLS; j++) if(mapa[i][j] === 0) suelos.push({x: i, y: j});
-    
     let start = suelos[Math.floor(Math.random() * suelos.length)];
     heroe = { ...HEROES[clase], nombre: clase, x: start.x, y: start.y, mov: 0 };
-    
     enemigos = [];
     let tipos = Object.keys(BESTIARIO);
     for(let i=0; i<4; i++) { 
         let pos = suelos[Math.floor(Math.random() * suelos.length)];
         let tipoNombre = tipos[Math.floor(Math.random() * tipos.length)];
-        if(Math.abs(pos.x - heroe.x) > 3) {
-            enemigos.push({nombre: tipoNombre, ...BESTIARIO[tipoNombre], x: pos.x, y: pos.y, vivo: true});
-        }
+        if(Math.abs(pos.x - heroe.x) > 3) enemigos.push({nombre: tipoNombre, ...BESTIARIO[tipoNombre], x: pos.x, y: pos.y, vivo: true});
     }
-
     document.getElementById('pantalla-seleccion').style.display = 'none';
     document.getElementById('juego-contenedor').style.display = 'flex';
     document.getElementById('nombre-heroe').innerText = heroe.nombre;
@@ -121,7 +116,6 @@ function atacarEnemigo() {
     en.vida -= dano;
     document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
     if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; }
-    
     document.getElementById('btn-atk').disabled = true;
     dibujar();
     setTimeout(finalizarTurno, 1000); 
@@ -153,13 +147,11 @@ function ejecutarTurnoEnemigo() {
             else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY) && !hayEnemigoEn(en.x, en.y + movY)) en.y += movY;
         }
     });
-
     if (heroe.vida <= 0) {
         document.getElementById('juego-contenedor').style.display = 'none';
         document.getElementById('pantalla-derrota').style.display = 'flex';
         return;
     }
-
     turno = "jugador";
     heroe.mov = 0;
     document.getElementById('log-combate').innerHTML += `<div>--- Turno Jugador ---</div>`;

@@ -2,25 +2,28 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>War Quest - HeroQuest Edition</title>
+    <title>War Quest - Motor Completo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="pantalla-seleccion">
-        <h1 id="titulo-juego">War Quest</h1>
-        <p class="intro-texto">Elige a tu héroe para adentrarte en la mazmorra:</p>
+        <h1>War Quest</h1>
         <div id="selector" class="grid-heroe"></div>
     </div>
 
     <div id="juego-contenedor" style="display:none;">
         <div id="tablero"></div>
-        <div class="panel">
-            <h2 id="nombre-heroe"></h2>
-            <p>Vida: <span id="vida-heroe"></span></p>
-            <p>Movimiento: <span id="mov-heroe"></span></p>
-            <button id="btn-mov" onclick="tirarDadosMovimiento()">Tirar Dados Movimiento</button>
-            <button id="btn-atk" onclick="atacarEnemigo()">Atacar</button>
-            <button onclick="finalizarTurno()">Finalizar Turno</button>
+        <div class="panel-lateral">
+            <div id="info-heroe">
+                <h2 id="nombre-heroe"></h2>
+                <p id="desc-heroe"></p>
+                <p>Vida: <span id="vida-heroe"></span></p>
+                <p>Movimiento: <span id="mov-heroe"></span></p>
+            </div>
+            <div class="controles">
+                <button onclick="tirarDados()">Tirar Dados (Movimiento)</button>
+                <button onclick="finalizarTurno()">Finalizar Turno</button>
+            </div>
             <div id="log-combate"></div>
         </div>
     </div>

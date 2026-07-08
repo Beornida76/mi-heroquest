@@ -1,14 +1,22 @@
 const HEROES = {
-    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo.", info: "Atacante robusto." },
-    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Experto en la exploración.", info: "Especialista en trampas." },
-    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Maestro de la agilidad.", info: "Rápido y equilibrado." },
-    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos.", info: "Maestro arcano." }
+    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra desde su juventud, su capacidad para infligir daño físico y resistir los ataques más brutales lo convierte en un combatiente temido en el frente de batalla." },
+    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes de las montañas, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas, además de una resistencia natural a los peligros de las mazmorras." },
+    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos, puede alcanzar a sus enemigos antes de que estos logren reaccionar. Combina el combate físico con una pizca de magia arcana." },
+    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Aunque su fragilidad física es evidente, el Mago es el poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante, desintegrando hordas de enemigos con una sola palabra de poder." }
+};
+
+const BESTIARIO = {
+    "Goblin": { vida: 1, atk: 2, def: 1, icono: "👺" },
+    "Orco": { vida: 2, atk: 3, def: 2, icono: "👹" },
+    "Fimir": { vida: 3, atk: 3, def: 3, icono: "🦎" },
+    "Guerrero del Caos": { vida: 4, atk: 4, def: 4, icono: "💀" },
+    "Gárgola": { vida: 6, atk: 5, def: 5, icono: "🗿" }
 };
 
 let heroe, FILAS = 19, COLS = 26;
 let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
 let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
-let enemigos = []; // Inicializamos vacío, se llenará al iniciar
+let enemigos = [];
 let turno = "jugador";
 
 function renderizarDados(cantidad) { return `<span class="dice-icon">${'🎲'.repeat(cantidad)}</span>`; }
@@ -19,29 +27,27 @@ for (let nombre in HEROES) {
     let h = HEROES[nombre];
     let div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<h2>${h.icono} ${nombre}</h2><div class="stats-container"><span>Atk: ${renderizarDados(h.atk)}</span><span>Def: ${renderizarDados(h.def)}</span></div><div class="desc">${h.desc}</div>`;
+    div.innerHTML = `<h2>${h.icono} ${nombre}</h2><div class="stats-container"><span>Atk: ${renderizarDados(h.atk)}</span><span>Def: ${renderizarDados(h.def)}</span></div><p style="font-size: 0.9em; margin-top:10px;">${h.desc}</p>`;
     div.onclick = () => iniciarJuego(nombre);
     selector.appendChild(div);
 }
 
 function iniciarJuego(clase) {
-    crearMapa(); 
-    
-    // Buscar posiciones válidas para el jugador y enemigos
+    crearMapa();
     let suelos = [];
     for(let i=0; i<FILAS; i++) for(let j=0; j<COLS; j++) if(mapa[i][j] === 0) suelos.push({x: i, y: j});
     
-    // Posición del Héroe
     let start = suelos[Math.floor(Math.random() * suelos.length)];
     heroe = { ...HEROES[clase], nombre: clase, x: start.x, y: start.y, mov: 0 };
     
-    // Spawn enemigos
+    // Spawn enemigos aleatorios del bestiario
     enemigos = [];
-    for(let i=0; i<3; i++) { // Generar 3 enemigos
+    let tipos = Object.keys(BESTIARIO);
+    for(let i=0; i<4; i++) { 
         let pos = suelos[Math.floor(Math.random() * suelos.length)];
-        // No spawnear encima del jugador
-        if(pos.x !== heroe.x || pos.y !== heroe.y) {
-            enemigos.push({nombre: "Orco", vida: 2, atk: 3, def: 1, icono: "👹", x: pos.x, y: pos.y, vivo: true});
+        let tipoNombre = tipos[Math.floor(Math.random() * tipos.length)];
+        if(Math.abs(pos.x - heroe.x) > 3) { // Que no aparezcan pegados al inicio
+            enemigos.push({nombre: tipoNombre, ...BESTIARIO[tipoNombre], x: pos.x, y: pos.y, vivo: true});
         }
     }
 
@@ -115,7 +121,7 @@ function atacarEnemigo() {
     let defensa = lanzarDadosCombate(en.def, 'defensa_monstruo');
     let dano = Math.max(0, ataque - defensa);
     en.vida -= dano;
-    document.getElementById('log-combate').innerHTML += `<div>Atacas: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
+    document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
     if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; }
     dibujar();
 }

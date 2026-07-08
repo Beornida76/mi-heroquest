@@ -3,11 +3,14 @@ const HEROES = {
     "Enano": { vida: 7, atk: 2, def: 2, icon: "⛏️", desc: "Resistente, experto en detectar trampas." }
 };
 
-const BESTIARIO = {
-    "Orco": { vida: 2, atk: 3, def: 2, mov: 8, icon: "👹" }
-};
+const BESTIARIO = [
+    { nombre: "Orco", vida: 2, atk: 3, def: 2, mov: 8, icon: "👹" },
+    { nombre: "Goblin", vida: 1, atk: 2, def: 1, mov: 10, icon: "👺" },
+    { nombre: "Fimir", vida: 3, atk: 3, def: 3, mov: 6, icon: "🦎" }
+];
 
 let mapa = [], explorado = [], enemigos = [], heroe = null, turno = "jugador";
+let salasGeneradas = []; // Guardamos las salas para saber dónde spawnear
 
 // --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,10 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function iniciarJuego(nombre) {
-    crearMapaCompleto();
+    crearMapaAleatorio();
     explorado = Array.from({ length: 19 }, () => Array(26).fill(false));
-    heroe = { nombre, ...HEROES[nombre], x: 2, y: 2, mov: 0 };
-    enemigos = [{ ...BESTIARIO["Orco"], x: 10, y: 10, vivo: true }];
+    
+    // Spawn Héroe en la primera sala
+    let salaHeroe = salasGeneradas[0];
+    heroe = { nombre, ...HEROES[nombre], x: salaHeroe.x + 1, y: salaHeroe.y + 1, mov: 0 };
+    
+    // Spawn Enemigos en otras salas
+    spawnEnemigos();
     
     document.getElementById('pantalla-seleccion').style.display = 'none';
     document.getElementById('juego-contenedor').style.display = 'flex';
@@ -33,16 +41,47 @@ function iniciarJuego(nombre) {
     dibujar();
 }
 
-function crearMapaCompleto() {
+// Generador procedural de habitaciones
+function crearMapaAleatorio() {
     mapa = Array.from({ length: 19 }, () => Array(26).fill(1)); // Todo muros
-    // Sala 1
-    for(let r=1; r<6; r++) for(let c=1; c<6; c++) mapa[r][c] = 0;
-    // Sala 2
-    for(let r=8; r<13; r++) for(let c=8; c<13; c++) mapa[r][c] = 0;
-    // Pasillo conector
-    for(let i=5; i<9; i++) mapa[i][6] = 0;
-    // Puertas
-    mapa[5][6] = 2; mapa[8][6] = 2;
+    salasGeneradas = [];
+
+    // Crear 4 salas aleatorias
+    for(let i=0; i<4; i++) {
+        let w = Math.floor(Math.random()*4) + 3; // Ancho 3-6
+        let h = Math.floor(Math.random()*4) + 3; // Alto 3-6
+        let x = Math.floor(Math.random()*(19-h-2)) + 1;
+        let y = Math.floor(Math.random()*(26-w-2)) + 1;
+
+        // Tallar sala
+        for(let r=x; r<x+h; r++) for(let c=y; c<y+w; c++) mapa[r][c] = 0;
+        salasGeneradas.push({x, y, w, h});
+    }
+
+    // Conectar salas con pasillos simples
+    for(let i=0; i < salasGeneradas.length - 1; i++) {
+        let s1 = salasGeneradas[i];
+        let s2 = salasGeneradas[i+1];
+        // Línea horizontal
+        for(let c = Math.min(s1.y, s2.y); c <= Math.max(s1.y, s2.y); c++) mapa[s1.x][c] = 0;
+        // Línea vertical
+        for(let r = Math.min(s1.x, s2.x); r <= Math.max(s1.x, s2.x); r++) mapa[r][s2.y] = 0;
+    }
+}
+
+function spawnEnemigos() {
+    enemigos = [];
+    // Ponemos un enemigo en cada sala que no sea la primera (donde está el héroe)
+    for(let i=1; i < salasGeneradas.length; i++) {
+        let sala = salasGeneradas[i];
+        let tipo = BESTIARIO[Math.floor(Math.random() * BESTIARIO.length)];
+        enemigos.push({
+            ...tipo,
+            x: sala.x + Math.floor(Math.random() * sala.h),
+            y: sala.y + Math.floor(Math.random() * sala.w),
+            vivo: true
+        });
+    }
 }
 
 function dibujar() {
@@ -51,22 +90,15 @@ function dibujar() {
     
     for(let f=0; f<19; f++) {
         for(let c=0; c<26; c++) {
-            // Lógica Niebla de Guerra
             if(Math.abs(heroe.x-f)<=2 && Math.abs(heroe.y-c)<=2) explorado[f][c] = true;
             
             let div = document.createElement('div');
-            
-            // 1. Aplicamos clase de visibilidad
             if (!explorado[f][c]) {
                 div.className = 'casilla oscuridad';
             } else {
                 div.className = 'casilla visible';
-                
-                // 2. Aplicamos terreno si es visible
                 if(mapa[f][c] === 1) div.classList.add('muro');
-                if(mapa[f][c] === 2) div.classList.add('puerta');
-                
-                // 3. Dibujamos personajes
+                // Dibujar entidades
                 if(f === heroe.x && c === heroe.y) {
                     div.innerText = heroe.icon;
                 } else {
@@ -81,7 +113,7 @@ function dibujar() {
     document.getElementById('mov-heroe').innerText = heroe.mov;
 }
 
-// --- LÓGICA ---
+// --- LÓGICA DE TURNO ---
 function tirarDados() {
     if(turno !== "jugador") return;
     heroe.mov = Math.floor(Math.random()*6) + Math.floor(Math.random()*6) + 2;
@@ -93,14 +125,17 @@ function finalizarTurno() {
     log("Turno Enemigo...");
     enemigos.forEach(en => {
         if(!en.vivo) return;
+        // IA muy básica: Moverse hacia el jugador si está cerca
         let dx = Math.sign(heroe.x - en.x);
         let dy = Math.sign(heroe.y - en.y);
+        
+        // Comprobar colisiones antes de mover
         if(mapa[en.x+dx][en.y] === 0) en.x += dx;
         else if(mapa[en.x][en.y+dy] === 0) en.y += dy;
         
         if(Math.abs(heroe.x-en.x)<=1 && Math.abs(heroe.y-en.y)<=1) {
             heroe.vida--;
-            log("¡Orco te ataca!");
+            log(`¡Un ${en.nombre} te ataca!`);
         }
     });
     turno = "jugador";
@@ -109,7 +144,9 @@ function finalizarTurno() {
 }
 
 function log(msg) {
-    document.getElementById('log-combate').innerHTML += `<div>${msg}</div>`;
+    const logBox = document.getElementById('log-combate');
+    logBox.innerHTML += `<div>${msg}</div>`;
+    logBox.scrollTop = logBox.scrollHeight;
 }
 
 window.addEventListener('keydown', (e) => {
@@ -121,11 +158,9 @@ window.addEventListener('keydown', (e) => {
     let en = enemigos.find(e => e.vivo && e.x === nx && e.y === ny);
     if(en) {
         en.vida--;
-        log("Atacas al enemigo");
-        if(en.vida <= 0) { en.vivo = false; log("¡Enemigo derrotado!"); }
+        log(`Atacas al ${en.nombre}`);
+        if(en.vida <= 0) { en.vivo = false; log(`¡${en.nombre} derrotado!`); }
         heroe.mov--;
-    } else if(mapa[nx][ny] === 2) { 
-        mapa[nx][ny] = 0; log("Puerta abierta"); heroe.mov--; 
     } else if(mapa[nx][ny] === 0) {
         heroe.x = nx; heroe.y = ny; heroe.mov--;
     }

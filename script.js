@@ -41,11 +41,18 @@ function iniciarPartida(claseElegida) {
     heroe = { nombre: claseElegida, ...HEROES[claseElegida], x: puntoCentralX, y: puntoCentralY, mov: 0 };
     generarMonstruosEnSalas();
     
+    // Limpiar pantallas y logs de partidas anteriores
+    document.getElementById('log-combate').innerHTML = '';
+    document.getElementById('resultado-dados-pantalla').innerHTML = 'Esperando que comience la batalla...';
+    document.getElementById('btn-dados').disabled = false;
+    
     document.getElementById('pantalla-seleccion').style.display = 'none';
+    document.getElementById('pantalla-muerte').style.display = 'none';
     document.getElementById('juego-contenedor').style.display = 'flex';
     document.getElementById('nombre-heroe').innerText = heroe.nombre;
     document.getElementById('desc-heroe').innerText = heroe.desc;
     
+    turno = "jugador";
     haAtacadoEsteTurno = false;
     log("¡Entraste a la mazmorra! Lanza los dados de movimiento.", "log-sistema");
     dibujarTablero();
@@ -149,7 +156,6 @@ function dibujarTablero() {
                 } else {
                     let en = enemigos.find(e => e.vivo && e.x === f && e.y === c);
                     if (en) {
-                        // VISUALIZACIÓN CLAVE: El icono muestra la vida del enemigo en el mapa (Ej: 👹2)
                         elementoDiv.innerText = `${en.icon}${en.vida}`;
                         elementoDiv.style.fontSize = "12px";
                         elementoDiv.style.fontWeight = "bold";
@@ -161,7 +167,9 @@ function dibujarTablero() {
         }
     }
     
-    document.getElementById('vida-heroe').innerText = heroe.vida;
+    // Evitar mostrar vida en negativo
+    let vidaMostrada = heroe.vida > 0 ? heroe.vida : 0;
+    document.getElementById('vida-heroe').innerText = vidaMostrada;
     document.getElementById('mov-heroe').innerText = heroe.mov;
 }
 
@@ -188,7 +196,6 @@ function lanzarDadosCombate(cantidadDados, probabilidadExito) {
     return exitos;
 }
 
-// ATACAR: Invocado por el botón del Panel Lateral
 function atacarEnemigoAdyacente() {
     const panelCombate = document.getElementById('resultado-dados-pantalla');
 
@@ -201,14 +208,12 @@ function atacarEnemigoAdyacente() {
         return;
     }
 
-    // Comprobar enemigos adyacentes en cruz (distancia Manhattan exacta de 1)
     let enemigoObjetivo = enemigos.find(e => 
         e.vivo && 
         Math.abs(e.x - heroe.x) + Math.abs(e.y - heroe.y) === 1
     );
 
     if (!enemigoObjetivo) {
-        // Explicación visual inmediata de por qué falló el botón
         panelCombate.innerHTML = `
             <span style="color: #ff3333;">❌ No hay ningún enemigo al lado.</span><br>
             <small style="color: #aaa;">Pégate a un monstruo (arriba, abajo o lados). ¡Las diagonales no cuentan!</small>
@@ -222,9 +227,7 @@ function atacarEnemigoAdyacente() {
 function ejecutarAtaqueJugador(objetivo) {
     haAtacadoEsteTurno = true;
     
-    // Dados de HeroQuest: 50% de caras son calaveras (ataque exitoso)
     let calaveras = lanzarDadosCombate(heroe.atk, 0.50);
-    // Defensa de Monstruo: 1 de cada 6 caras (16.6% probabilidad)
     let escudos = lanzarDadosCombate(objetivo.def, 0.166);
     let dañoNeto = calaveras - escudos;
     
@@ -244,7 +247,6 @@ function ejecutarAtaqueJugador(objetivo) {
         log(`Atacas al ${objetivo.nombre}: ${calaveras} 💀 vs ${escudos} 🛡️. ¡Bloqueado!`, "log-defensa");
     }
 
-    // ACTUALIZACIÓN DIRECTA EN PANTALLA DE DATOS DE DADOS
     document.getElementById('resultado-dados-pantalla').innerHTML = `
         <strong style="color: #ffaa00;">⚔️ Tu Ataque contra ${objetivo.nombre}:</strong><br>
         Tu Ofensiva: ${calaveras} 💀 | Su Defensa: ${escudos} 🛡️<br>
@@ -262,21 +264,20 @@ function finalizarTurno() {
     const panelCombate = document.getElementById('resultado-dados-pantalla');
     panelCombate.innerHTML = `<span style="color: #ff3333; font-weight:bold;">⚠️ ¡LOS MONSTRUOS SE MUEVEN Y ATACAN! ⚠️</span>`;
 
-    // Procesar cada monstruo vivo secuencialmente
     enemigos.forEach(monstruo => {
         if (!monstruo.vivo) return;
+        // Evitamos que los monstruos ataquen si el héroe ya ha muerto este turno
+        if (heroe.vida <= 0) return; 
 
         let pasos = 0;
         while (pasos < monstruo.mov) {
             let dist = Math.abs(heroe.x - monstruo.x) + Math.abs(heroe.y - monstruo.y);
             
-            // Si ya está al lado, rompe el movimiento y ejecuta el ataque
             if (dist === 1) {
                 ejecutarAtaqueEnemigo(monstruo);
                 break;
             }
 
-            // Persecución inteligente por casillas libres (0)
             let dirX = Math.sign(heroe.x - monstruo.x);
             let dirY = Math.sign(heroe.y - monstruo.y);
 
@@ -290,25 +291,24 @@ function finalizarTurno() {
             pasos++;
         }
 
-        // Segunda verificación por si se pegó al héroe al terminar sus pasos
-        if (Math.abs(heroe.x - monstruo.x) + Math.abs(heroe.y - monstruo.y) === 1) {
+        if (heroe.vida > 0 && Math.abs(heroe.x - monstruo.x) + Math.abs(heroe.y - monstruo.y) === 1) {
             ejecutarAtaqueEnemigo(monstruo);
         }
     });
 
-    // Devolver el turno de forma limpia
-    turno = "jugador";
-    heroe.mov = 0;
-    haAtacadoEsteTurno = false;
-    document.getElementById('btn-dados').disabled = false;
-    log("--- Tu Turno. Lanza dados para moverte ---", "log-sistema");
-    dibujarTablero();
+    // Si el héroe sobrevive al turno enemigo
+    if (heroe.vida > 0) {
+        turno = "jugador";
+        heroe.mov = 0;
+        haAtacadoEsteTurno = false;
+        document.getElementById('btn-dados').disabled = false;
+        log("--- Tu Turno. Lanza dados para moverte ---", "log-sistema");
+        dibujarTablero();
+    }
 }
 
 function ejecutarAtaqueEnemigo(monstruo) {
-    // El monstruo ataca con un 50% de obtener calaveras
     let calaveras = lanzarDadosCombate(monstruo.atk, 0.50);
-    // El héroe se defiende con escudos de héroe (33.3% probabilidad en dados)
     let escudos = lanzarDadosCombate(heroe.def, 0.333);
     let dañoNeto = calaveras - escudos;
 
@@ -318,22 +318,34 @@ function ejecutarAtaqueEnemigo(monstruo) {
         mensajeEnemigo = `🩸 El ${monstruo.nombre} te inflige <span style="color:red; font-weight:bold;">${dañoNeto}</span> de daño.`;
         log(`¡${monstruo.nombre} te ataca!: ${calaveras} 💀 vs ${escudos} 🛡️. Recibes ${dañoNeto} daño.`, "log-defensa");
         
+        // Comprobar muerte del jugador
         if (heroe.vida <= 0) {
             log("💀 ¡Has muerto! Fin de la partida.", "log-muerte");
-            alert("¡Has caído en combate! Recarga la página para reintentarlo.");
             turno = "muerto";
+            dibujarTablero(); // Actualiza el 0 en la vida visualmente
+            
+            // Ligerísima pausa de 1.5s para ver el impacto antes del fundido a rojo
+            setTimeout(() => {
+                document.getElementById('juego-contenedor').style.display = 'none';
+                document.getElementById('pantalla-muerte').style.display = 'flex';
+            }, 1500);
         }
     } else {
         mensajeEnemigo = `🛡️ Bloqueaste el ataque del ${monstruo.nombre}.`;
         log(`¡${monstruo.nombre} te ataca!: ${calaveras} 💀 vs ${escudos} 🛡️. ¡Lo detuviste!`, "log-ataque");
     }
 
-    // MOSTRAR RESULTADO DEL ATAQUE DEL MONSTRUO EN LA PANTALLA LATERAL
     document.getElementById('resultado-dados-pantalla').innerHTML = `
         <strong style="color: #ff3333;">👹 ¡Asalto de ${monstruo.nombre}!</strong><br>
         Su Ataque: ${calaveras} 💀 | Tu Defensa: ${escudos} 🛡️<br>
         ${mensajeEnemigo}
     `;
+}
+
+// Nueva función invocada por el botón de la Pantalla de Muerte
+function volverAlMenu() {
+    document.getElementById('pantalla-muerte').style.display = 'none';
+    document.getElementById('pantalla-seleccion').style.display = 'block';
 }
 
 function log(mensaje, claseEstilo) {

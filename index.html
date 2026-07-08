@@ -2,29 +2,36 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>War Quest</title>
+    <title>Hero Quest Web</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- Pantalla de Selección de Personaje -->
     <div id="pantalla-seleccion">
-        <h1>War Quest</h1>
-        <p class="intro-text">"El mundo se sumerge en las sombras. Las hordas del Caos han usurpado las fortalezas ancestrales. Elige a tu campeón y adéntrate en la mazmorra."</p>
-        <div class="grid-heroe" id="selector"></div>
+        <h1>Elige tu Héroe</h1>
+        <div id="selector" class="grid-heroe"></div>
     </div>
 
-    <div id="juego-contenedor">
+    <!-- Contenedor del Juego -->
+    <div id="juego-contenedor" style="display:none;">
+        <div id="tablero"></div>
         <div class="panel">
-            <h2 id="turno-txt" style="color: #c69c6d;">Turno: Jugador</h2>
-            <p><strong>Héroe: <span id="nombre-heroe"></span></strong></p>
-            <p>Vida: <span id="vida-heroe"></span> | Mov: <span id="mov-heroe">0</span></p>
-            <button id="btn-mov" onclick="tirarDadosMovimiento()">Tirar Dados</button>
+            <h2 id="nombre-heroe"></h2>
+            <p>Vida: <span id="vida-heroe"></span></p>
+            <p>Movimiento: <span id="mov-heroe"></span></p>
+            <button id="btn-mov" onclick="tirarDadosMovimiento()">Tirar Dados Movimiento</button>
             <button id="btn-atk" onclick="atacarEnemigo()" disabled>Atacar</button>
-            <button id="btn-end" onclick="finalizarTurno()" style="display: block; margin-top: 10px; width: 100%;">Finalizar Turno</button>
-            <h3>Bitácora</h3>
+            <button onclick="finalizarTurno()">Finalizar Turno</button>
             <div id="log-combate"></div>
         </div>
-        <div id="tablero"></div>
+    </div>
+
+    <!-- Pantalla de Derrota -->
+    <div id="pantalla-derrota" style="display:none;">
+        <h1 style="color: #ff4444; font-size: 3em;">¡HAS MUERTO!</h1>
+        <p>Tu aventura ha llegado a un fin trágico.</p>
+        <button onclick="location.reload()" style="padding: 15px 30px; font-size: 1.2em; cursor:pointer;">Volver a Intentarlo</button>
     </div>
 
     <script src="script.js"></script>

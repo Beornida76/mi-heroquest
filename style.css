@@ -78,7 +78,7 @@ h1 {
 .muro { background-color: #566573 !important; border: 1px solid #2c3e50; } 
 .puerta { background-color: #d35400 !important; border: 2px dashed #f39c12; }
 
-/* Interfaz de Selección de Personaje Mejorada estilo RPG */
+/* Interfaz de Selección de Personaje */
 .grid-heroe { 
     display: flex; 
     gap: 25px; 

@@ -123,7 +123,6 @@ function atacarEnemigo() {
     document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
     if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; }
     
-    // Deshabilitar botón y terminar turno automáticamente
     document.getElementById('btn-atk').disabled = true;
     dibujar();
     setTimeout(finalizarTurno, 1000); 
@@ -155,10 +154,16 @@ function ejecutarTurnoEnemigo() {
             else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY) && !hayEnemigoEn(en.x, en.y + movY)) en.y += movY;
         }
     });
+
+    if (heroe.vida <= 0) {
+        document.getElementById('juego-contenedor').style.display = 'none';
+        document.getElementById('pantalla-derrota').style.display = 'flex';
+        return;
+    }
+
     turno = "jugador";
     heroe.mov = 0;
     document.getElementById('log-combate').innerHTML += `<div>--- Turno Jugador ---</div>`;
-    if (heroe.vida <= 0) alert("¡Has muerto!");
     dibujar();
 }
 

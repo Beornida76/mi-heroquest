@@ -73,12 +73,9 @@ function dibujar() {
     document.getElementById('vida-heroe').innerText = heroe.vida;
     document.getElementById('mov-heroe').innerText = heroe.mov;
     
-    // LOGICA DE BOTONES CORREGIDA
+    // Gestión de estados de los botones
     let adyacente = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
-    
-    // Botón atacar: habilitado solo en tu turno y si hay enemigo cerca
     document.getElementById('btn-atk').disabled = (turno !== "jugador" || !adyacente);
-    // Botón mover: habilitado solo en tu turno y si movimiento es 0 (te obliga a tirar primero)
     document.getElementById('btn-mov').disabled = (turno !== "jugador" || heroe.mov > 0);
 }
 
@@ -92,7 +89,7 @@ function atacarEnemigo() {
     let dano = Math.max(0, ataque - defensa);
     en.vida -= dano;
     
-    document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${defensa} (Daño: ${dano})</div>`;
+    document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
     if (en.vida <= 0) { 
         en.vivo = false; 
         document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; 
@@ -104,7 +101,7 @@ function finalizarTurno() {
     if (turno !== "jugador") return;
     turno = "enemigo";
     document.getElementById('log-combate').innerHTML += `<div>--- Turno del Enemigo ---</div>`;
-    dibujar();
+    dibujar(); // Actualizamos UI para deshabilitar botones
     setTimeout(ejecutarTurnoEnemigo, 800);
 }
 
@@ -119,17 +116,25 @@ function ejecutarTurnoEnemigo() {
             let defensa = lanzarDadosCombate(heroe.def, 'defensa_heroe');
             let dano = Math.max(0, ataque - defensa);
             heroe.vida -= dano;
-            document.getElementById('log-combate').innerHTML += `<div>${en.nombre} ataca: ${ataque} vs ${defensa} (Daño: ${dano})</div>`;
+            document.getElementById('log-combate').innerHTML += `<div>${en.nombre} ataca: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
         } else {
+            // Lógica de movimiento: acercarse al héroe
             let movX = distX !== 0 ? (distX > 0 ? 1 : -1) : 0;
             let movY = distY !== 0 ? (distY > 0 ? 1 : -1) : 0;
-            if (mapa[en.x + movX][en.y] === 0 && !hayJugadorEn(en.x + movX, en.y)) en.x += movX;
-            else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY)) en.y += movY;
+            
+            // Intenta mover en X
+            if (mapa[en.x + movX][en.y] === 0 && !hayJugadorEn(en.x + movX, en.y) && !hayEnemigoEn(en.x + movX, en.y)) {
+                en.x += movX;
+            } 
+            // Intenta mover en Y
+            else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY) && !hayEnemigoEn(en.x, en.y + movY)) {
+                en.y += movY;
+            }
         }
     });
 
     turno = "jugador";
-    heroe.mov = 0; // RESETEAR MOVIMIENTO AL EMPEZAR TURNO
+    heroe.mov = 0; 
     document.getElementById('log-combate').innerHTML += `<div>--- Turno del Jugador ---</div>`;
     if (heroe.vida <= 0) alert("¡Has muerto! Fin de la partida.");
     dibujar();

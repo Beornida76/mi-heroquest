@@ -40,13 +40,12 @@ function iniciarJuego(clase) {
     let start = suelos[Math.floor(Math.random() * suelos.length)];
     heroe = { ...HEROES[clase], nombre: clase, x: start.x, y: start.y, mov: 0 };
     
-    // Spawn enemigos aleatorios del bestiario
     enemigos = [];
     let tipos = Object.keys(BESTIARIO);
     for(let i=0; i<4; i++) { 
         let pos = suelos[Math.floor(Math.random() * suelos.length)];
         let tipoNombre = tipos[Math.floor(Math.random() * tipos.length)];
-        if(Math.abs(pos.x - heroe.x) > 3) { // Que no aparezcan pegados al inicio
+        if(Math.abs(pos.x - heroe.x) > 3) {
             enemigos.push({nombre: tipoNombre, ...BESTIARIO[tipoNombre], x: pos.x, y: pos.y, vivo: true});
         }
     }
@@ -123,7 +122,11 @@ function atacarEnemigo() {
     en.vida -= dano;
     document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
     if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; }
+    
+    // Deshabilitar botón y terminar turno automáticamente
+    document.getElementById('btn-atk').disabled = true;
     dibujar();
+    setTimeout(finalizarTurno, 1000); 
 }
 
 function finalizarTurno() {

@@ -1,14 +1,13 @@
-body { margin: 0; background-color: #1a1a1a; color: #e0e0e0; font-family: sans-serif; }
-#titulo-juego { text-align: center; color: #d4af37; font-size: 3em; margin-top: 20px; }
-.grid-heroe { display: flex; justify-content: center; gap: 20px; padding: 20px; }
-.card { background: #2a2a2a; border: 2px solid #555; padding: 15px; cursor: pointer; width: 220px; text-align: center; }
-.card:hover { border-color: #c69c6d; }
-#juego-contenedor { display: none; display: flex; padding: 20px; gap: 20px; justify-content: center; }
-#tablero { display: grid; grid-template-columns: repeat(26, 25px); grid-template-rows: repeat(19, 25px); background: #000; border: 2px solid #333; }
-.casilla { width: 25px; height: 25px; background: #000; display: flex; align-items: center; justify-content: center; font-size: 14px;}
-.visible { background: #2a2a2a; }
-.muro { background: #555; }
-.puerta { background-color: #8b4513; border: 1px solid #d2691e; }
+body { background: #111; color: #eee; font-family: 'Georgia', serif; }
+#tablero { display: grid; grid-template-columns: repeat(26, 30px); grid-template-rows: repeat(19, 30px); border: 4px solid #444; }
+.casilla { width: 30px; height: 30px; border: 0.1px solid #222; display: flex; align-items: center; justify-content: center; }
 .oscuridad { background: #000; }
-.panel { width: 300px; background: #222; padding: 20px; border: 1px solid #444; }
-#log-combate { height: 200px; overflow-y: auto; background: #000; margin-top: 10px; font-size: 0.85em; padding: 5px; }
+.muro { background: #333; }
+.puerta { background: #8b4513; }
+.visible { background: #222; }
+.grid-heroe { display: flex; gap: 20px; justify-content: center; }
+.card { background: #222; border: 2px solid #555; padding: 15px; cursor: pointer; width: 200px; }
+.card:hover { border-color: #d4af37; }
+#juego-contenedor { display: flex; gap: 20px; }
+.panel-lateral { width: 300px; padding: 20px; border-left: 2px solid #333; }
+#log-combate { height: 300px; overflow-y: scroll; background: #000; margin-top: 20px; padding: 10px; font-size: 0.9em; }

@@ -21,7 +21,6 @@ let turno = "jugador";
 
 function renderizarDados(cantidad) { return `<span class="dice-icon">${'🎲'.repeat(cantidad)}</span>`; }
 
-// Inicializar Selector
 const selector = document.getElementById('selector');
 for (let nombre in HEROES) {
     let h = HEROES[nombre];

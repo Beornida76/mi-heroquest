@@ -59,6 +59,7 @@ function iniciarPartida(claseElegida) {
     crearMazmorraProcedural();
     explorado = Array.from({ length: 19 }, () => Array(26).fill(false));
     
+    // El héroe siempre aparece en la primera sala, que ahora es la pequeña.
     let primeraSala = salasGeneradas[0];
     let puntoCentralX = Math.floor(primeraSala.x + primeraSala.h / 2);
     let puntoCentralY = Math.floor(primeraSala.y + primeraSala.w / 2);
@@ -66,7 +67,6 @@ function iniciarPartida(claseElegida) {
     heroe = { nombre: claseElegida, ...HEROES[claseElegida], x: puntoCentralX, y: puntoCentralY, mov: 0 };
     generarMonstruosEnSalas();
     
-    // Limpiar pantallas y logs de partidas anteriores
     document.getElementById('log-combate').innerHTML = '';
     document.getElementById('resultado-dados-pantalla').innerHTML = 'Esperando que comience la batalla...';
     document.getElementById('btn-dados').disabled = false;
@@ -79,7 +79,7 @@ function iniciarPartida(claseElegida) {
     
     turno = "jugador";
     haAtacadoEsteTurno = false;
-    log("¡Entraste a la mazmorra! Lanza los dados de movimiento.", "log-sistema");
+    log("¡Has aparecido en una sala segura de la mazmorra! Lanza los dados de movimiento.", "log-sistema");
     dibujarTablero();
 }
 
@@ -87,9 +87,25 @@ function crearMazmorraProcedural() {
     mapa = Array.from({ length: 19 }, () => Array(26).fill(1)); 
     salasGeneradas = [];
 
+    // --- SALA INICIAL (Sala 0) ---
+    // Siempre será una habitación pequeña (3x3) y sin monstruos
+    let anchoInicio = 3;
+    let altoInicio = 3;
+    let posXInicio = Math.floor(Math.random() * (19 - altoInicio - 2)) + 1;
+    let posYInicio = Math.floor(Math.random() * (26 - anchoInicio - 2)) + 1;
+
+    for (let r = posXInicio; r < posXInicio + altoInicio; r++) {
+        for (let c = posYInicio; c < posYInicio + anchoInicio; c++) {
+            mapa[r][c] = 0; // 0 significa suelo transitable
+        }
+    }
+    salasGeneradas.push({ x: posXInicio, y: posYInicio, w: anchoInicio, h: altoInicio });
+
+    // --- RESTO DE LAS SALAS ---
+    // Generamos otras 4 salas más grandes
     for (let i = 0; i < 4; i++) {
-        let anchoSala = Math.floor(Math.random() * 3) + 4; 
-        let altoSala = Math.floor(Math.random() * 3) + 4;  
+        let anchoSala = Math.floor(Math.random() * 4) + 4; // Tamaño entre 4 y 7
+        let altoSala = Math.floor(Math.random() * 4) + 4;  // Tamaño entre 4 y 7
         let posRowX = Math.floor(Math.random() * (19 - altoSala - 2)) + 1;
         let posColY = Math.floor(Math.random() * (26 - anchoSala - 2)) + 1;
 
@@ -101,6 +117,7 @@ function crearMazmorraProcedural() {
         salasGeneradas.push({ x: posRowX, y: posColY, w: anchoSala, h: altoSala });
     }
 
+    // --- CONECTAR SALAS ---
     for (let i = 0; i < salasGeneradas.length - 1; i++) {
         let actual = salasGeneradas[i];
         let siguiente = salasGeneradas[i + 1];
@@ -114,9 +131,9 @@ function crearMazmorraProcedural() {
         let horizontalEnd = Math.max(startY, endY);
         for (let c = horizontalStart; c <= horizontalEnd; c++) {
             if (mapa[startX][c] === 1 && (mapa[startX][c-1] === 0 || mapa[startX][c+1] === 0)) {
-                mapa[startX][c] = 2;
+                mapa[startX][c] = 2; // Puerta
             } else if (mapa[startX][c] === 1) {
-                mapa[startX][c] = 0;
+                mapa[startX][c] = 0; // Pasillo
             }
         }
 
@@ -124,9 +141,9 @@ function crearMazmorraProcedural() {
         let verticalEnd = Math.max(startX, endX);
         for (let r = verticalStart; r <= verticalEnd; r++) {
             if (mapa[r][endY] === 1 && (mapa[r-1][endY] === 0 || mapa[r+1][endY] === 0)) {
-                mapa[r][endY] = 2;
+                mapa[r][endY] = 2; // Puerta
             } else if (mapa[r][endY] === 1) {
-                mapa[r][endY] = 0;
+                mapa[r][endY] = 0; // Pasillo
             }
         }
     }
@@ -134,21 +151,38 @@ function crearMazmorraProcedural() {
 
 function generarMonstruosEnSalas() {
     enemigos = [];
+    
+    // Bucle que empieza en 1 (Ignora la sala 0 que es donde spawnea el héroe)
     for (let i = 1; i < salasGeneradas.length; i++) {
         let sala = salasGeneradas[i];
-        let plantillaMonstruo = BESTIARIO[Math.floor(Math.random() * BESTIARIO.length)];
         
-        enemigos.push({
-            nombre: plantillaMonstruo.nombre,
-            vida: plantillaMonstruo.vida,
-            atk: plantillaMonstruo.atk,
-            def: plantillaMonstruo.def,
-            mov: plantillaMonstruo.mov,
-            icon: plantillaMonstruo.icon,
-            x: sala.x + 1,
-            y: sala.y + 1,
-            vivo: true
-        });
+        // Coloca entre 1 y 3 enemigos por sala desde que se genera el mapa
+        let cantidadMonstruos = Math.floor(Math.random() * 3) + 1;
+        
+        for (let j = 0; j < cantidadMonstruos; j++) {
+            let plantillaMonstruo = BESTIARIO[Math.floor(Math.random() * BESTIARIO.length)];
+            
+            // Elegir coordenadas aleatorias estrictamente dentro de la sala
+            let mX = sala.x + Math.floor(Math.random() * sala.h);
+            let mY = sala.y + Math.floor(Math.random() * sala.w);
+            
+            // Verificar que la casilla es suelo (0) y no hay otro monstruo allí ya colocado
+            let casillaOcupada = enemigos.some(e => e.x === mX && e.y === mY && e.vivo);
+            
+            if (!casillaOcupada && mapa[mX][mY] === 0) {
+                enemigos.push({
+                    nombre: plantillaMonstruo.nombre,
+                    vida: plantillaMonstruo.vida,
+                    atk: plantillaMonstruo.atk,
+                    def: plantillaMonstruo.def,
+                    mov: plantillaMonstruo.mov,
+                    icon: plantillaMonstruo.icon,
+                    x: mX,
+                    y: mY,
+                    vivo: true
+                });
+            }
+        }
     }
 }
 
@@ -192,7 +226,6 @@ function dibujarTablero() {
         }
     }
     
-    // Evitar mostrar vida en negativo
     let vidaMostrada = heroe.vida > 0 ? heroe.vida : 0;
     document.getElementById('vida-heroe').innerText = vidaMostrada;
     document.getElementById('mov-heroe').innerText = heroe.mov;

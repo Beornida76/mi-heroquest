@@ -31,11 +31,7 @@
 
     <div id="pantalla-seleccion">
         <h1>War Quest</h1>
-        <p class="intro-text">
-            "El mundo se sumerge en las sombras. Las hordas del Caos, comandadas por el malvado Zargon, han usurpado las fortalezas ancestrales. 
-            Solo un grupo de valientes, dotados de habilidades únicas, se atreven a adentrarse en la oscuridad. 
-            ¡Prepárate para la aventura, desenvaina tu acero y reclama tu destino en las profundidades de la mazmorra!"
-        </p>
+        <p class="intro-text">"El mundo se sumerge en las sombras. Las hordas del Caos, comandadas por el malvado Zargon, han usurpado las fortalezas ancestrales. ¡Prepárate para la aventura!"</p>
         <div class="grid-heroe" id="selector"></div>
     </div>
 
@@ -45,7 +41,6 @@
             <p><strong>Héroe: <span id="nombre-heroe"></span></strong></p>
             <p>Vida: <span id="vida-heroe"></span> | Mov: <span id="mov-heroe">0</span></p>
             <button id="btn-mov" onclick="tirarDadosMovimiento()">Tirar Dados</button>
-            <button id="btn-atk" onclick="atacarEnemigo()" disabled>¡Atacar!</button>
             <h3>Bitácora</h3>
             <div id="log-combate"></div>
         </div>
@@ -54,15 +49,18 @@
 
     <script>
         const HEROES = {
-            "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra, su capacidad para infligir daño y resistir los ataques más brutales lo convierte en un combatiente temido. No conoce el miedo.", info: "Dados de Ataque: 3 | Dados de Defensa: 2" },
-            "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas. Su estoicismo le permite aguantar en el fragor de la batalla.", info: "Dados de Ataque: 2 | Dados de Defensa: 2" },
-            "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos, puede alcanzar a sus enemigos antes de que estos logren reaccionar. Su destreza le permite equilibrar el combate.", info: "Dados de Ataque: 2 | Dados de Defensa: 2" },
-            "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante. Un guía esencial, cuya mente es el arma más peligrosa contra las fuerzas del Caos.", info: "Dados de Ataque: 1 | Dados de Defensa: 2" }
+            "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra, su capacidad para infligir daño lo convierte en un combatiente temido.", info: "Dados de Ataque: 3 | Dados de Defensa: 2" },
+            "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Experto en el arte de la exploración, posee una habilidad innata para detectar trampas. Su estoicismo le permite aguantar en el fragor de la batalla.", info: "Dados de Ataque: 2 | Dados de Defensa: 2" },
+            "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Guerrero de gracia sobrenatural, maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos antes de que el enemigo reaccione.", info: "Dados de Ataque: 2 | Dados de Defensa: 2" },
+            "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante.", info: "Dados de Ataque: 1 | Dados de Defensa: 2" }
         };
 
-        let heroe, mapa = Array.from({ length: 19 }, () => Array(26).fill(1)), explorado = Array.from({ length: 19 }, () => Array(26).fill(false));
-        
-        // Inicializar Selector
+        let heroe, FILAS = 19, COLS = 26;
+        let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
+        let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
+        let enemigos = [{nombre: "Orco", x: 5, y: 5, vivo: true, icono: "👹"}];
+
+        // Inicializar Selección
         const selector = document.getElementById('selector');
         for (let nombre in HEROES) {
             let h = HEROES[nombre];
@@ -82,18 +80,22 @@
         }
 
         function crearMapa() {
-            const h = [{x: 1, y: 1, w: 6, h: 5}, {x: 15, y: 1, w: 6, h: 5}, {x: 8, y: 7, w: 6, h: 5}, {x: 1, y: 13, w: 6, h: 5}, {x: 15, y: 13, w: 6, h: 5}];
-            h.forEach(q => { for(let i=q.y; i<q.y+q.h; i++) for(let j=q.x; j<q.x+q.w; j++) mapa[i][j] = 0; });
-            for(let i=3; i<16; i++) { mapa[i][4] = 0; mapa[i][21] = 0; }
-            for(let j=4; j<22; j++) mapa[9][j] = 0;
+            const rooms = [{x: 1, y: 1, w: 6, h: 5}, {x: 15, y: 1, w: 6, h: 5}];
+            rooms.forEach(q => { for(let i=q.y; i<q.y+q.h; i++) for(let j=q.x; j<q.x+q.w; j++) mapa[i][j] = 0; });
         }
 
         function dibujar() {
             const tablero = document.getElementById('tablero'); tablero.innerHTML = '';
-            for (let f = 0; f < 19; f++) {
-                for (let c = 0; c < 26; c++) {
+            for (let f = 0; f < FILAS; f++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (Math.abs(heroe.x - f) <= 2 && Math.abs(heroe.y - c) <= 2) explorado[f][c] = true;
                     const el = document.createElement('div');
-                    el.className = 'casilla ' + (mapa[f][c] === 1 ? 'muro' : 'visible');
+                    el.className = 'casilla';
+                    if (explorado[f][c]) {
+                        el.classList.add('visible');
+                        if (mapa[f][c] === 1) el.classList.add('muro');
+                        enemigos.forEach(en => { if(en.x === f && en.y === c && en.vivo) el.innerText = en.icono; });
+                    }
                     if (f === heroe.x && c === heroe.y) el.innerText = heroe.icono;
                     tablero.appendChild(el);
                 }
@@ -113,7 +115,9 @@
             let nx = heroe.x, ny = heroe.y;
             if(e.key === 'ArrowUp') nx--; if(e.key === 'ArrowDown') nx++;
             if(e.key === 'ArrowLeft') ny--; if(e.key === 'ArrowRight') ny++;
-            if(mapa[nx][ny] === 0) { heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar(); }
+            if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS && mapa[nx][ny] === 0) { 
+                heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar(); 
+            }
             if(heroe.mov === 0) document.getElementById('btn-mov').disabled = false;
         });
     </script>

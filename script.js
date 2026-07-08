@@ -25,18 +25,45 @@ for (let nombre in HEROES) {
 }
 
 function iniciarJuego(clase) {
-    heroe = { ...HEROES[clase], nombre: clase, x: 2, y: 2, mov: 0 };
+    crearMapa(); // Generar mapa primero para saber dónde poner al héroe
+    
+    // Buscar una posición válida (suelo) para el héroe
+    let startX = 1, startY = 1;
+    for(let i=0; i<FILAS; i++) for(let j=0; j<COLS; j++) if(mapa[i][j] === 0) { startX = i; startY = j; break; }
+
+    heroe = { ...HEROES[clase], nombre: clase, x: startX, y: startY, mov: 0 };
     document.getElementById('pantalla-seleccion').style.display = 'none';
     document.getElementById('juego-contenedor').style.display = 'flex';
     document.getElementById('nombre-heroe').innerText = heroe.nombre;
-    crearMapa(); dibujar();
+    dibujar();
 }
 
 function crearMapa() {
-    [{x: 1, y: 1, w: 5, h: 5}, {x: 10, y: 1, w: 5, h: 5}].forEach(q => {
-        for(let i=q.y; i<q.y+q.h; i++) for(let j=q.x; j<q.x+q.w; j++) mapa[i][j] = 0;
-    });
-    for(let i=1; i<7; i++) mapa[i][6] = 0;
+    // 1. Llenar todo de muros
+    mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
+    let salas = [];
+
+    // 2. Crear 5-7 salas aleatorias
+    for(let i=0; i<7; i++) {
+        let w = Math.floor(Math.random() * 4) + 3;
+        let h = Math.floor(Math.random() * 3) + 3;
+        let x = Math.floor(Math.random() * (FILAS - h - 2)) + 1;
+        let y = Math.floor(Math.random() * (COLS - w - 2)) + 1;
+        
+        for(let r=x; r<x+h; r++) for(let c=y; c<y+w; c++) mapa[r][c] = 0;
+        salas.push({x: Math.floor(x + h/2), y: Math.floor(y + w/2)});
+    }
+
+    // 3. Conectar salas con pasillos
+    for(let i=0; i<salas.length - 1; i++) {
+        let s1 = salas[i], s2 = salas[i+1];
+        // Pasillo horizontal
+        let stepY = s1.y < s2.y ? 1 : -1;
+        for(let c=s1.y; c !== s2.y; c += stepY) mapa[s1.x][c] = 0;
+        // Pasillo vertical
+        let stepX = s1.x < s2.x ? 1 : -1;
+        for(let r=s1.x; r !== s2.x; r += stepX) mapa[r][s2.y] = 0;
+    }
 }
 
 function hayEnemigoEn(x, y) { return enemigos.find(en => en.vivo && en.x === x && en.y === y); }
@@ -46,9 +73,9 @@ function lanzarDadosCombate(cantidad, tipo) {
     let aciertos = 0;
     for(let i=0; i<cantidad; i++) {
         let cara = Math.floor(Math.random() * 6) + 1;
-        if (tipo === 'ataque' && cara <= 3) aciertos++; // Calavera
-        else if (tipo === 'defensa_heroe' && (cara === 4 || cara === 5)) aciertos++; // Escudo Blanco
-        else if (tipo === 'defensa_monstruo' && cara === 6) aciertos++; // Escudo Negro
+        if (tipo === 'ataque' && cara <= 3) aciertos++;
+        else if (tipo === 'defensa_heroe' && (cara === 4 || cara === 5)) aciertos++;
+        else if (tipo === 'defensa_monstruo' && cara === 6) aciertos++;
     }
     return aciertos;
 }
@@ -73,7 +100,6 @@ function dibujar() {
     document.getElementById('vida-heroe').innerText = heroe.vida;
     document.getElementById('mov-heroe').innerText = heroe.mov;
     
-    // Gestión de estados de los botones
     let adyacente = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
     document.getElementById('btn-atk').disabled = (turno !== "jugador" || !adyacente);
     document.getElementById('btn-mov').disabled = (turno !== "jugador" || heroe.mov > 0);
@@ -90,10 +116,7 @@ function atacarEnemigo() {
     en.vida -= dano;
     
     document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
-    if (en.vida <= 0) { 
-        en.vivo = false; 
-        document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; 
-    }
+    if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; }
     dibujar();
 }
 
@@ -101,7 +124,7 @@ function finalizarTurno() {
     if (turno !== "jugador") return;
     turno = "enemigo";
     document.getElementById('log-combate').innerHTML += `<div>--- Turno del Enemigo ---</div>`;
-    dibujar(); // Actualizamos UI para deshabilitar botones
+    dibujar();
     setTimeout(ejecutarTurnoEnemigo, 800);
 }
 
@@ -118,18 +141,10 @@ function ejecutarTurnoEnemigo() {
             heroe.vida -= dano;
             document.getElementById('log-combate').innerHTML += `<div>${en.nombre} ataca: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
         } else {
-            // Lógica de movimiento: acercarse al héroe
             let movX = distX !== 0 ? (distX > 0 ? 1 : -1) : 0;
             let movY = distY !== 0 ? (distY > 0 ? 1 : -1) : 0;
-            
-            // Intenta mover en X
-            if (mapa[en.x + movX][en.y] === 0 && !hayJugadorEn(en.x + movX, en.y) && !hayEnemigoEn(en.x + movX, en.y)) {
-                en.x += movX;
-            } 
-            // Intenta mover en Y
-            else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY) && !hayEnemigoEn(en.x, en.y + movY)) {
-                en.y += movY;
-            }
+            if (mapa[en.x + movX][en.y] === 0 && !hayJugadorEn(en.x + movX, en.y) && !hayEnemigoEn(en.x + movX, en.y)) en.x += movX;
+            else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY) && !hayEnemigoEn(en.x, en.y + movY)) en.y += movY;
         }
     });
 

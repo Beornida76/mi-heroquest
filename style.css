@@ -1,10 +1,38 @@
-body { background: #111; color: #eee; font-family: 'Georgia', serif; }
-#tablero { display: grid; grid-template-columns: repeat(26, 30px); grid-template-rows: repeat(19, 30px); border: 4px solid #444; }
-.casilla { width: 30px; height: 30px; border: 0.1px solid #222; display: flex; align-items: center; justify-content: center; }
-.oscuridad { background: #000; }
-.muro { background: #333; }
-.puerta { background: #8b4513; }
-.visible { background: #222; }
+body { 
+    background: #111; 
+    color: #eee; 
+    font-family: 'Segoe UI', Tahoma, sans-serif; 
+}
+
+/* El contenedor del tablero */
+#tablero { 
+    display: grid; 
+    grid-template-columns: repeat(26, 30px); 
+    grid-template-rows: repeat(19, 30px); 
+    border: 4px solid #333;
+    background-color: #000;
+}
+
+/* La celda base */
+.casilla { 
+    width: 30px; 
+    height: 30px; 
+    box-sizing: border-box;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    border: 1px solid #111; /* Borde sutil para ver la cuadrícula */
+}
+
+/* Niveles de Visibilidad */
+.oscuridad { background: #000; } 
+.visible { background: #2c3e50; } /* Suelo: Azul oscuro grisáceo */
+
+/* Colores de Elementos */
+.muro { background: #5d6d7e !important; border: 1px solid #34495e; } /* Muros: Gris claro */
+.puerta { background: #d35400 !important; border: 1px solid #a04000; } /* Puertas: Naranja/Marrón */
+
+/* Selector y Panel */
 .grid-heroe { display: flex; gap: 20px; justify-content: center; }
 .card { background: #222; border: 2px solid #555; padding: 15px; cursor: pointer; width: 200px; }
 .card:hover { border-color: #d4af37; }

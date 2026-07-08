@@ -14,7 +14,7 @@ const BESTIARIO = {
 };
 
 let heroe, FILAS = 19, COLS = 26;
-let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
+let mapa = []; // 0:Suelo, 1:Muro, 2:PuertaCerrada, 3:PuertaAbierta
 let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
 let enemigos = [];
 let turno = "jugador";
@@ -65,6 +65,7 @@ function crearMapa() {
         let s1 = salas[i], s2 = salas[i+1];
         for(let c=Math.min(s1.y, s2.y); c <= Math.max(s1.y, s2.y); c++) mapa[s1.x][c] = 0;
         for(let r=Math.min(s1.x, s2.x); r <= Math.max(s1.x, s2.x); r++) mapa[r][s2.y] = 0;
+        mapa[s2.x][s2.y] = 2; // Colocar puerta en entrada de sala
     }
 }
 
@@ -92,6 +93,8 @@ function dibujar() {
             if (explorado[f][c]) {
                 el.classList.add('visible');
                 if (mapa[f][c] === 1) el.classList.add('muro');
+                if (mapa[f][c] === 2) { el.classList.add('puerta'); el.innerText = "🚪"; }
+                if (mapa[f][c] === 3) { /* Puerta abierta es suelo */ }
                 let en = hayEnemigoEn(f, c);
                 if (en) el.innerText = en.icono;
             }
@@ -101,13 +104,11 @@ function dibujar() {
     }
     document.getElementById('vida-heroe').innerText = heroe.vida;
     document.getElementById('mov-heroe').innerText = heroe.mov;
-    let adyacente = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
-    document.getElementById('btn-atk').disabled = (turno !== "jugador" || !adyacente);
+    document.getElementById('btn-atk').disabled = (turno !== "jugador" || !enemigos.some(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y)));
     document.getElementById('btn-mov').disabled = (turno !== "jugador" || heroe.mov > 0);
 }
 
 function atacarEnemigo() {
-    if (turno !== "jugador") return;
     let en = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
     if (!en) return;
     let ataque = lanzarDadosCombate(heroe.atk, 'ataque');
@@ -116,7 +117,6 @@ function atacarEnemigo() {
     en.vida -= dano;
     document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
     if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; }
-    document.getElementById('btn-atk').disabled = true;
     dibujar();
     setTimeout(finalizarTurno, 1000); 
 }
@@ -169,7 +169,8 @@ window.addEventListener('keydown', (e) => {
     let nx = heroe.x, ny = heroe.y;
     if(e.key === 'ArrowUp') nx--; if(e.key === 'ArrowDown') nx++;
     if(e.key === 'ArrowLeft') ny--; if(e.key === 'ArrowRight') ny++;
-    if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS && mapa[nx][ny] === 0 && !hayEnemigoEn(nx, ny)) {
-        heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar();
+    if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS) {
+        if (mapa[nx][ny] === 2) { mapa[nx][ny] = 3; heroe.mov--; dibujar(); }
+        else if ((mapa[nx][ny] === 0 || mapa[nx][ny] === 3) && !hayEnemigoEn(nx, ny)) { heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar(); }
     }
 });

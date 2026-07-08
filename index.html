@@ -1,25 +1,37 @@
-body { margin: 0; padding: 0; background-color: #1a1a1a; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>War Quest</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-#titulo-juego { font-family: 'Georgia', serif; color: #d4af37; font-size: 4.5em; text-shadow: 2px 2px 8px #000, 0px 0px 10px #d4af37; margin-bottom: 10px; letter-spacing: 2px; }
-.intro-texto { color: #aaa; font-style: italic; margin-bottom: 30px; }
+    <div id="pantalla-seleccion">
+        <h1 id="titulo-juego">War Quest</h1>
+        <p class="intro-texto">Adéntrate en las profundidades de la mazmorra, derrota a las hordas del mal y reclama tu gloria. Elige a tu héroe:</p>
+        <div id="selector" class="grid-heroe"></div>
+    </div>
 
-#pantalla-seleccion { padding: 40px; text-align: center; }
-.grid-heroe { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
-.card { width: 250px; min-height: 350px; background: #2a2a2a; border: 2px solid #555; padding: 20px; cursor: pointer; transition: transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; align-items: center; text-align: center; border-radius: 8px; }
-.card:hover { transform: scale(1.05); border-color: #c69c6d; }
+    <div id="juego-contenedor" style="display:none;">
+        <div id="tablero"></div>
+        <div class="panel">
+            <h2 id="nombre-heroe"></h2>
+            <p>Vida: <span id="vida-heroe"></span></p>
+            <p>Movimiento: <span id="mov-heroe"></span></p>
+            <button id="btn-mov" onclick="tirarDadosMovimiento()">Tirar Dados Movimiento</button>
+            <button id="btn-atk" onclick="atacarEnemigo()" disabled>Atacar</button>
+            <button onclick="finalizarTurno()">Finalizar Turno</button>
+            <div id="log-combate"></div>
+        </div>
+    </div>
 
-#juego-contenedor { display: none; padding: 20px; gap: 20px; justify-content: center; }
-.panel { width: 300px; background: #222; padding: 20px; border: 1px solid #444; border-radius: 8px; height: fit-content; }
-#log-combate { height: 300px; overflow-y: auto; background: #111; padding: 10px; font-size: 0.85em; border: 1px solid #333; margin-top: 10px; }
+    <div id="pantalla-derrota" style="display:none;">
+        <h1 class="sangriento">LA MAZMORRA HA<br>RECLAMADO TU ALMA</h1>
+        <p>Tus huesos descansarán eternamente en la oscuridad.</p>
+        <button onclick="location.reload()" style="padding: 15px 30px; font-size: 1.2em; cursor:pointer; background: #8b0000; color: white; border: 2px solid white;">Volver a Intentarlo</button>
+    </div>
 
-#tablero { display: grid; grid-template-columns: repeat(26, 25px); grid-template-rows: repeat(19, 25px); gap: 1px; background: #000; border: 2px solid #333; }
-.casilla { width: 25px; height: 25px; background: #000; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-.casilla.visible { background: #1e1e1e; }
-.casilla.muro { background: #3d3d3d; }
-
-#pantalla-derrota { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #330000 0%, #000000 80%); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-.sangriento { font-family: 'Impact', sans-serif; color: #8b0000; font-size: 5em; text-transform: uppercase; text-shadow: 2px 2px 0px #000, 4px 4px 0px #4a0000, 6px 6px 0px #2a0000; margin-bottom: 20px; line-height: 1em; }
-
-button { width: 100%; padding: 10px; margin-bottom: 5px; cursor: pointer; background: #c69c6d; border: none; font-weight: bold; border-radius: 4px; }
-button:disabled { background: #555; cursor: not-allowed; }
-.dice-icon { font-size: 1.2em; margin: 0 5px; }
+    <script src="script.js"></script>
+</body>
+</html>

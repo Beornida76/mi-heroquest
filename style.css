@@ -22,7 +22,7 @@ h1 {
     margin-bottom: 30px;
 }
 
-/* Redimensionado de tablero para soportar texto de vida */
+/* Tablero */
 #tablero { 
     display: grid; 
     grid-template-columns: repeat(26, 38px); 
@@ -60,7 +60,7 @@ h1 {
 .stats-box { background: #111; padding: 10px; border-radius: 5px; border: 1px solid #333; margin-bottom: 15px; }
 .stat-val { font-weight: bold; color: #d4af37; }
 
-/* ESTILO DE LA NUEVA PANTALLA DE COMBATE INMEDIATO */
+/* Pantalla de Combate Inmediato */
 #pantalla-combate-inmediato {
     background-color: #0b0f12;
     border: 2px solid #d4af37;
@@ -87,3 +87,56 @@ h1 {
 .log-defensa { color: #00aaff; }
 .log-muerte { color: #ff0000; font-weight: bold; }
 .log-sistema { color: #ffff00; }
+
+/* ESTILOS NUEVOS: PANTALLA DE MUERTE */
+#pantalla-muerte {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, #5a0000 0%, #000000 80%);
+    border: 5px solid #8b0000;
+    border-radius: 10px;
+    padding: 50px;
+    max-width: 800px;
+    margin-top: 50px;
+    box-shadow: 0 0 50px #ff0000;
+}
+
+.texto-sangre {
+    color: #ff3333;
+    font-size: 4.5em;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 0 #4a0000, -2px -2px 0 #4a0000, 5px 5px 15px #000;
+    margin-bottom: 20px;
+}
+
+.desc-muerte {
+    color: #ffcccc;
+    font-size: 1.5em;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 40px;
+    font-style: italic;
+    text-shadow: 2px 2px 4px #000;
+}
+
+.btn-sangriento {
+    background: #4a0000;
+    color: #fff;
+    border: 2px solid #ff3333;
+    padding: 20px 40px;
+    font-size: 1.5em;
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+}
+
+.btn-sangriento:hover {
+    background: #8b0000;
+    transform: scale(1.05);
+    box-shadow: 0 5px 25px rgba(255, 0, 0, 0.8);
+}

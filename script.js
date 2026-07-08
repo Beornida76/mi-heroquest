@@ -1,13 +1,19 @@
 const HEROES = {
-    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra desde su juventud, su capacidad para infligir daño físico y resistir los ataques más brutales lo convierte en un combatiente temido.", info: "Atacante robusto." },
-    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes de las montañas, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas.", info: "Especialista en trampas." },
-    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos, puede alcanzar a sus enemigos antes de que estos logren reaccionar.", info: "Rápido y equilibrado." },
-    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Aunque su fragilidad física es evidente, el Mago es el poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante.", info: "Maestro arcano." }
+    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra, su capacidad para infligir daño físico y resistir los ataques lo convierte en un combatiente temido.", info: "Atacante robusto." },
+    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas.", info: "Especialista en trampas." },
+    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos antes de que el enemigo reaccione.", info: "Rápido y equilibrado." },
+    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante.", info: "Maestro arcano." }
 };
+
+let heroe, FILAS = 19, COLS = 26;
+let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
+let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
+let enemigos = [{nombre: "Orco", vida: 2, atk: 3, def: 1, icono: "👹", x: 4, y: 4, vivo: true}];
+let turno = "jugador";
 
 function renderizarDados(cantidad) { return `<span class="dice-icon">${'🎲'.repeat(cantidad)}</span>`; }
 
-// --- Inicialización del Selector ---
+// Inicializar Selector
 const selector = document.getElementById('selector');
 for (let nombre in HEROES) {
     let h = HEROES[nombre];
@@ -17,12 +23,6 @@ for (let nombre in HEROES) {
     div.onclick = () => iniciarJuego(nombre);
     selector.appendChild(div);
 }
-
-// --- Lógica del Juego ---
-let heroe, FILAS = 19, COLS = 26;
-let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
-let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
-let enemigos = [{nombre: "Orco", vida: 2, atk: 3, def: 1, icono: "👹", x: 4, y: 4, vivo: true}];
 
 function iniciarJuego(clase) {
     heroe = { ...HEROES[clase], nombre: clase, x: 2, y: 2, mov: 0 };
@@ -39,10 +39,8 @@ function crearMapa() {
     for(let i=1; i<7; i++) mapa[i][6] = 0;
 }
 
-// Función auxiliar: Devuelve true si hay un enemigo vivo en esa coordenada
-function hayEnemigoEn(x, y) {
-    return enemigos.find(en => en.vivo && en.x === x && en.y === y);
-}
+function hayEnemigoEn(x, y) { return enemigos.find(en => en.vivo && en.x === x && en.y === y); }
+function hayJugadorEn(x, y) { return heroe.x === x && heroe.y === y; }
 
 function lanzarDadosCombate(cantidad, tipo) {
     let aciertos = 0;
@@ -65,7 +63,6 @@ function dibujar() {
             if (explorado[f][c]) {
                 el.classList.add('visible');
                 if (mapa[f][c] === 1) el.classList.add('muro');
-                // Dibujar enemigo si está vivo
                 let en = hayEnemigoEn(f, c);
                 if (en) el.innerText = en.icono;
             }
@@ -75,13 +72,13 @@ function dibujar() {
     }
     document.getElementById('vida-heroe').innerText = heroe.vida;
     document.getElementById('mov-heroe').innerText = heroe.mov;
-    
-    // Habilitar botón de ataque si hay un enemigo ADYACENTE
     let adyacente = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
-    document.getElementById('btn-atk').disabled = !adyacente;
+    document.getElementById('btn-atk').disabled = (turno !== "jugador" || !adyacente);
+    document.getElementById('btn-mov').disabled = (turno !== "jugador" || heroe.mov === 0);
 }
 
 function atacarEnemigo() {
+    if (turno !== "jugador") return;
     let en = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
     if (!en) return;
     
@@ -98,22 +95,54 @@ function atacarEnemigo() {
     dibujar();
 }
 
+function finalizarTurno() {
+    if (turno !== "jugador") return;
+    turno = "enemigo";
+    document.getElementById('log-combate').innerHTML += `<div>--- Turno del Enemigo ---</div>`;
+    dibujar();
+    setTimeout(ejecutarTurnoEnemigo, 800);
+}
+
+function ejecutarTurnoEnemigo() {
+    enemigos.forEach(en => {
+        if (!en.vivo) return;
+        let distX = heroe.x - en.x;
+        let distY = heroe.y - en.y;
+
+        if (Math.abs(distX) <= 1 && Math.abs(distY) <= 1) {
+            let ataque = lanzarDadosCombate(en.atk, 'ataque');
+            let defensa = lanzarDadosCombate(heroe.def, 'defensa_heroe');
+            let dano = Math.max(0, ataque - defensa);
+            heroe.vida -= dano;
+            document.getElementById('log-combate').innerHTML += `<div>${en.nombre} ataca: ${ataque} vs ${defensa} (Daño: ${dano})</div>`;
+        } else {
+            let movX = distX !== 0 ? (distX > 0 ? 1 : -1) : 0;
+            let movY = distY !== 0 ? (distY > 0 ? 1 : -1) : 0;
+            if (mapa[en.x + movX][en.y] === 0 && !hayJugadorEn(en.x + movX, en.y)) en.x += movX;
+            else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY)) en.y += movY;
+        }
+    });
+
+    turno = "jugador";
+    document.getElementById('log-combate').innerHTML += `<div>--- Turno del Jugador ---</div>`;
+    if (heroe.vida <= 0) alert("¡Has muerto! Fin de la partida.");
+    dibujar();
+}
+
 function tirarDadosMovimiento() {
+    if (turno !== "jugador") return;
     heroe.mov = Math.floor(Math.random()*6) + Math.floor(Math.random()*6) + 2;
     document.getElementById('btn-mov').disabled = true;
     dibujar();
 }
 
 window.addEventListener('keydown', (e) => {
-    if(heroe.mov <= 0) return;
+    if(turno !== "jugador" || heroe.mov <= 0) return;
     let nx = heroe.x, ny = heroe.y;
     if(e.key === 'ArrowUp') nx--; if(e.key === 'ArrowDown') nx++;
     if(e.key === 'ArrowLeft') ny--; if(e.key === 'ArrowRight') ny++;
     
-    // Verificación de movimiento: Debe estar dentro de límites, no ser muro Y no haber enemigo
     if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS && mapa[nx][ny] === 0 && !hayEnemigoEn(nx, ny)) {
         heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar();
     }
-    
-    if(heroe.mov === 0) document.getElementById('btn-mov').disabled = false;
 });

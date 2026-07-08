@@ -14,7 +14,7 @@ const BESTIARIO = {
 };
 
 let heroe, FILAS = 19, COLS = 26;
-let mapa = []; // 0:Suelo, 1:Muro, 2:PuertaCerrada, 3:PuertaAbierta
+let mapa = []; 
 let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
 let enemigos = [];
 let turno = "jugador";
@@ -52,20 +52,31 @@ function iniciarJuego(clase) {
 
 function crearMapa() {
     mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
-    let salas = [];
-    for(let i=0; i<7; i++) {
-        let w = Math.floor(Math.random() * 4) + 3;
-        let h = Math.floor(Math.random() * 3) + 3;
+    let puntosPuerta = [];
+
+    // Crear 6 salas
+    for(let i=0; i<6; i++) {
+        let w = Math.floor(Math.random() * 4) + 4;
+        let h = Math.floor(Math.random() * 3) + 4;
         let x = Math.floor(Math.random() * (FILAS - h - 2)) + 1;
         let y = Math.floor(Math.random() * (COLS - w - 2)) + 1;
+        
+        // Llenar sala de suelo
         for(let r=x; r<x+h; r++) for(let c=y; c<y+w; c++) mapa[r][c] = 0;
-        salas.push({x: Math.floor(x + h/2), y: Math.floor(y + w/2)});
+        
+        // Poner puerta en pared derecha
+        let doorX = Math.floor(x + h/2);
+        let doorY = y + w - 1;
+        mapa[doorX][doorY] = 2; 
+        puntosPuerta.push({x: doorX, y: doorY});
     }
-    for(let i=0; i<salas.length - 1; i++) {
-        let s1 = salas[i], s2 = salas[i+1];
-        for(let c=Math.min(s1.y, s2.y); c <= Math.max(s1.y, s2.y); c++) mapa[s1.x][c] = 0;
-        for(let r=Math.min(s1.x, s2.x); r <= Math.max(s1.x, s2.x); r++) mapa[r][s2.y] = 0;
-        mapa[s2.x][s2.y] = 2; // Colocar puerta en entrada de sala
+
+    // Conectar salas mediante puertas
+    for(let i=0; i < puntosPuerta.length - 1; i++) {
+        let p1 = puntosPuerta[i], p2 = puntosPuerta[i+1];
+        let curX = p1.x, curY = p1.y;
+        while(curY !== p2.y) { curY += (p2.y > curY ? 1 : -1); if(mapa[curX][curY] === 1) mapa[curX][curY] = 0; }
+        while(curX !== p2.x) { curX += (p2.x > curX ? 1 : -1); if(mapa[curX][curY] === 1) mapa[curX][curY] = 0; }
     }
 }
 
@@ -94,7 +105,6 @@ function dibujar() {
                 el.classList.add('visible');
                 if (mapa[f][c] === 1) el.classList.add('muro');
                 if (mapa[f][c] === 2) { el.classList.add('puerta'); el.innerText = "🚪"; }
-                if (mapa[f][c] === 3) { /* Puerta abierta es suelo */ }
                 let en = hayEnemigoEn(f, c);
                 if (en) el.innerText = en.icono;
             }

@@ -1,5 +1,16 @@
 body { margin: 0; padding: 0; background-color: #1a1a1a; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
+/* Título y Presentación */
+#titulo-juego {
+    font-family: 'Georgia', serif;
+    color: #d4af37; /* Color Oro */
+    font-size: 4.5em;
+    text-shadow: 2px 2px 8px #000, 0px 0px 10px #d4af37;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+.intro-texto { color: #aaa; font-style: italic; margin-bottom: 30px; }
+
 /* Pantalla de Selección */
 #pantalla-seleccion { padding: 40px; text-align: center; }
 .grid-heroe { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
@@ -17,27 +28,9 @@ body { margin: 0; padding: 0; background-color: #1a1a1a; color: #e0e0e0; font-fa
 .casilla.visible { background: #1e1e1e; }
 .casilla.muro { background: #3d3d3d; }
 
-/* Pantalla Derrota (Estilos mejorados) */
-#pantalla-derrota {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle, #330000 0%, #000000 80%);
-    z-index: 100;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    text-align: center;
-}
-
-.sangriento {
-    font-family: 'Impact', sans-serif;
-    color: #8b0000;
-    font-size: 5em;
-    text-transform: uppercase;
-    text-shadow: 
-        2px 2px 0px #000, 
-        4px 4px 0px #4a0000, 
-        6px 6px 0px #2a0000;
-    margin-bottom: 20px;
-    line-height: 1em;
-}
+/* Pantalla Derrota */
+#pantalla-derrota { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #330000 0%, #000000 80%); z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.sangriento { font-family: 'Impact', sans-serif; color: #8b0000; font-size: 5em; text-transform: uppercase; text-shadow: 2px 2px 0px #000, 4px 4px 0px #4a0000, 6px 6px 0px #2a0000; margin-bottom: 20px; line-height: 1em; }
 
 /* Botones */
 button { width: 100%; padding: 10px; margin-bottom: 5px; cursor: pointer; background: #c69c6d; border: none; font-weight: bold; border-radius: 4px; }

@@ -1,4 +1,3 @@
-/* Estilos Generales y Tipografía de Fantasía Oscura */
 body { 
     background-color: #141414; 
     color: #f5f5f5; 
@@ -23,152 +22,67 @@ h1 {
     margin-bottom: 30px;
 }
 
-/* Tablero de Juego en Cuadrícula */
+/* Redimensionado de tablero para soportar texto de vida */
 #tablero { 
     display: grid; 
-    grid-template-columns: repeat(26, 32px); 
-    grid-template-rows: repeat(19, 32px); 
+    grid-template-columns: repeat(26, 38px); 
+    grid-template-rows: repeat(19, 38px); 
     border: 4px solid #2c2512;
     background-color: #050505;
     box-shadow: 0px 0px 20px rgba(0,0,0,0.8);
 }
 
-/* Casillas Individuales */
 .casilla { 
-    width: 32px; 
-    height: 32px; 
+    width: 38px; 
+    height: 38px; 
     display: flex; 
     align-items: center; 
     justify-content: center;
-    font-size: 1.2em;
+    font-size: 1.1em;
     box-sizing: border-box;
     border: 1px solid #1a1a1a; 
 }
 
-/* Tipos de Terreno y Niebla de Guerra */
-.oscuridad { 
-    background-color: #000000; 
-} 
-
-.visible { 
-    background-color: #1c2833; /* Suelo transitable (Azul/Gris oscuro) */
-} 
-
-.muro { 
-    background-color: #566573 !important; /* Muros de piedra (Gris claro) */
-    border: 1px solid #2c3e50;
-} 
-
-.puerta { 
-    background-color: #d35400 !important; /* Puertas cerradas (Naranja madera) */
-    border: 2px dashed #f39c12;
-}
+.oscuridad { background-color: #000000; } 
+.visible { background-color: #1c2833; } 
+.muro { background-color: #566573 !important; border: 1px solid #2c3e50; } 
+.puerta { background-color: #d35400 !important; border: 2px dashed #f39c12; }
 
 /* Interfaz de Selección */
-.grid-heroe { 
-    display: flex; 
-    gap: 30px; 
-    justify-content: center; 
-    margin-top: 20px; 
-}
+.grid-heroe { display: flex; gap: 30px; justify-content: center; margin-top: 20px; }
+.card { background: #222; border: 2px solid #444; border-radius: 8px; padding: 20px; cursor: pointer; width: 220px; text-align: center; }
+.card:hover { border-color: #d4af37; transform: translateY(-5px); }
 
-.card { 
-    background: #222; 
-    border: 2px solid #444; 
-    border-radius: 8px;
-    padding: 20px; 
-    cursor: pointer; 
-    width: 220px; 
-    text-align: center; 
-    transition: all 0.3s ease;
-}
+/* Panel Lateral */
+#juego-contenedor { display: flex; gap: 25px; }
+.panel-lateral { width: 340px; padding: 20px; border: 2px solid #2c2512; background: #1a1a1a; border-radius: 8px; }
+.descripcion { font-style: italic; color: #aaa; font-size: 0.9em; margin-bottom: 15px; }
+.stats-box { background: #111; padding: 10px; border-radius: 5px; border: 1px solid #333; margin-bottom: 15px; }
+.stat-val { font-weight: bold; color: #d4af37; }
 
-.card:hover { 
-    border-color: #d4af37; 
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(212,175,55,0.2);
-}
-
-.card h3 {
-    color: #d4af37;
-    margin-top: 5px;
-}
-
-/* Panel Lateral de Estado */
-#juego-contenedor { 
-    display: flex; 
-    gap: 25px; 
-}
-
-.panel-lateral { 
-    width: 320px; 
-    padding: 20px; 
-    border: 2px solid #2c2512; 
-    background: #1a1a1a; 
-    border-radius: 8px;
-}
-
-.descripcion {
-    font-style: italic;
-    color: #aaa;
-    font-size: 0.9em;
-    margin-bottom: 15px;
-}
-
-.stats-box {
-    background: #111;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #333;
-    margin-bottom: 20px;
-}
-
-.stat-val {
-    font-weight: bold;
-    color: #d4af37;
-}
-
-/* Botones */
-.controles button {
-    width: 100%;
+/* ESTILO DE LA NUEVA PANTALLA DE COMBATE INMEDIATO */
+#pantalla-combate-inmediato {
+    background-color: #0b0f12;
+    border: 2px solid #d4af37;
+    border-radius: 6px;
     padding: 12px;
-    margin-bottom: 10px;
-    background: #2c2512;
-    border: 1px solid #d4af37;
-    color: #d4af37;
-    font-family: 'Georgia', serif;
-    font-size: 1em;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background 0.2s;
+    margin-bottom: 15px;
+    text-align: center;
+    min-height: 90px;
+    box-shadow: inset 0 0 10px #000;
 }
+#pantalla-combate-inmediato h4 { margin: 0 0 8px 0; color: #d4af37; font-size: 0.9em; letter-spacing: 1px; }
 
-.controles button:hover {
-    background: #d4af37;
-    color: #000;
+/* Botones de acción */
+.controles button {
+    width: 100%; padding: 12px; margin-bottom: 10px; background: #2c2512; border: 1px solid #d4af37; color: #d4af37;
+    font-family: 'Georgia', serif; font-size: 1em; font-weight: bold; cursor: pointer; border-radius: 4px;
 }
+.controles button:hover { background: #d4af37; color: #000; }
+.controles button:disabled { background: #222; border-color: #444; color: #666; cursor: not-allowed; }
 
-.controles button:disabled {
-    background: #222;
-    border-color: #444;
-    color: #666;
-    cursor: not-allowed;
-}
-
-/* Registro de Combate */
-#log-combate { 
-    height: 250px; 
-    overflow-y: auto; 
-    background: #0a0a0a; 
-    border: 1px solid #333;
-    padding: 10px; 
-    font-size: 0.85em; 
-    font-family: monospace;
-    color: #00ff00;
-    border-radius: 4px;
-}
-
+/* Log del historial */
+#log-combate { height: 160px; overflow-y: auto; background: #0a0a0a; border: 1px solid #333; padding: 10px; font-size: 0.85em; font-family: monospace; color: #bbb; border-radius: 4px; }
 .log-ataque { color: #ffaa00; }
 .log-defensa { color: #00aaff; }
 .log-muerte { color: #ff0000; font-weight: bold; }

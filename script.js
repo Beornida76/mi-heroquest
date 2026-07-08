@@ -51,35 +51,41 @@ function iniciarJuego(clase) {
 }
 
 function crearMapa() {
+    // 1. Llenar todo de muros
     mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
-    let puntosPuerta = [];
+    let puertas = [];
 
-    // Crear 6 salas
-    for(let i=0; i<6; i++) {
+    // 2. Generar 5 Salas
+    for(let i=0; i<5; i++) {
         let w = Math.floor(Math.random() * 4) + 4;
         let h = Math.floor(Math.random() * 3) + 4;
         let x = Math.floor(Math.random() * (FILAS - h - 2)) + 1;
         let y = Math.floor(Math.random() * (COLS - w - 2)) + 1;
         
-        // Llenar sala de suelo
+        // Dibujar suelo de la sala
         for(let r=x; r<x+h; r++) for(let c=y; c<y+w; c++) mapa[r][c] = 0;
+        // Dibujar muros del perímetro
+        for(let r=x; r<x+h; r++) { mapa[r][y] = 1; mapa[r][y+w-1] = 1; }
+        for(let c=y; c<y+w; c++) { mapa[x][c] = 1; mapa[x+h-1][c] = 1; }
         
-        // Poner puerta en pared derecha
-        let doorX = Math.floor(x + h/2);
+        // Poner puerta en la pared derecha (exactamente en el borde)
+        let doorX = x + Math.floor(h/2);
         let doorY = y + w - 1;
-        mapa[doorX][doorY] = 2; 
-        puntosPuerta.push({x: doorX, y: doorY});
+        mapa[doorX][doorY] = 2; // Puerta
+        puertas.push({x: doorX, y: doorY});
     }
 
-    // Conectar salas mediante puertas
-    for(let i=0; i < puntosPuerta.length - 1; i++) {
-        let p1 = puntosPuerta[i], p2 = puntosPuerta[i+1];
-        let curX = p1.x, curY = p1.y;
-        while(curY !== p2.y) { curY += (p2.y > curY ? 1 : -1); if(mapa[curX][curY] === 1) mapa[curX][curY] = 0; }
-        while(curX !== p2.x) { curX += (p2.x > curX ? 1 : -1); if(mapa[curX][curY] === 1) mapa[curX][curY] = 0; }
+    // 3. Conectar puertas (pasillos)
+    for(let i=0; i < puertas.length - 1; i++) {
+        let p1 = puertas[i], p2 = puertas[i+1];
+        // Línea horizontal
+        for(let c = Math.min(p1.y, p2.y); c <= Math.max(p1.y, p2.y); c++) if(mapa[p1.x][c] === 1) mapa[p1.x][c] = 0;
+        // Línea vertical
+        for(let r = Math.min(p1.x, p2.x); r <= Math.max(p1.x, p2.x); r++) if(mapa[r][p2.y] === 0 || mapa[r][p2.y] === 1) mapa[r][p2.y] = 0;
     }
 }
 
+// ... (El resto de funciones siguen igual: hayEnemigoEn, dibujar, atacar, turnoEnemigo, etc.)
 function hayEnemigoEn(x, y) { return enemigos.find(en => en.vivo && en.x === x && en.y === y); }
 function hayJugadorEn(x, y) { return heroe.x === x && heroe.y === y; }
 

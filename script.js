@@ -1,14 +1,14 @@
 const HEROES = {
-    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra, su capacidad para infligir daño físico y resistir los ataques lo convierte en un combatiente temido.", info: "Atacante robusto." },
-    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Descendiente de las antiguas estirpes, el Enano es un experto en el arte de la exploración. Posee una habilidad innata para detectar trampas y puertas secretas.", info: "Especialista en trampas." },
-    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Un guerrero de gracia sobrenatural, el Elfo es un maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos antes de que el enemigo reaccione.", info: "Rápido y equilibrado." },
-    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante.", info: "Maestro arcano." }
+    "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo.", info: "Atacante robusto." },
+    "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Experto en la exploración.", info: "Especialista en trampas." },
+    "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Maestro de la agilidad.", info: "Rápido y equilibrado." },
+    "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos.", info: "Maestro arcano." }
 };
 
 let heroe, FILAS = 19, COLS = 26;
 let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
 let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
-let enemigos = [{nombre: "Orco", vida: 2, atk: 3, def: 1, icono: "👹", x: 4, y: 4, vivo: true}];
+let enemigos = []; // Inicializamos vacío, se llenará al iniciar
 let turno = "jugador";
 
 function renderizarDados(cantidad) { return `<span class="dice-icon">${'🎲'.repeat(cantidad)}</span>`; }
@@ -25,13 +25,26 @@ for (let nombre in HEROES) {
 }
 
 function iniciarJuego(clase) {
-    crearMapa(); // Generar mapa primero para saber dónde poner al héroe
+    crearMapa(); 
     
-    // Buscar una posición válida (suelo) para el héroe
-    let startX = 1, startY = 1;
-    for(let i=0; i<FILAS; i++) for(let j=0; j<COLS; j++) if(mapa[i][j] === 0) { startX = i; startY = j; break; }
+    // Buscar posiciones válidas para el jugador y enemigos
+    let suelos = [];
+    for(let i=0; i<FILAS; i++) for(let j=0; j<COLS; j++) if(mapa[i][j] === 0) suelos.push({x: i, y: j});
+    
+    // Posición del Héroe
+    let start = suelos[Math.floor(Math.random() * suelos.length)];
+    heroe = { ...HEROES[clase], nombre: clase, x: start.x, y: start.y, mov: 0 };
+    
+    // Spawn enemigos
+    enemigos = [];
+    for(let i=0; i<3; i++) { // Generar 3 enemigos
+        let pos = suelos[Math.floor(Math.random() * suelos.length)];
+        // No spawnear encima del jugador
+        if(pos.x !== heroe.x || pos.y !== heroe.y) {
+            enemigos.push({nombre: "Orco", vida: 2, atk: 3, def: 1, icono: "👹", x: pos.x, y: pos.y, vivo: true});
+        }
+    }
 
-    heroe = { ...HEROES[clase], nombre: clase, x: startX, y: startY, mov: 0 };
     document.getElementById('pantalla-seleccion').style.display = 'none';
     document.getElementById('juego-contenedor').style.display = 'flex';
     document.getElementById('nombre-heroe').innerText = heroe.nombre;
@@ -39,30 +52,20 @@ function iniciarJuego(clase) {
 }
 
 function crearMapa() {
-    // 1. Llenar todo de muros
     mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
     let salas = [];
-
-    // 2. Crear 5-7 salas aleatorias
     for(let i=0; i<7; i++) {
         let w = Math.floor(Math.random() * 4) + 3;
         let h = Math.floor(Math.random() * 3) + 3;
         let x = Math.floor(Math.random() * (FILAS - h - 2)) + 1;
         let y = Math.floor(Math.random() * (COLS - w - 2)) + 1;
-        
         for(let r=x; r<x+h; r++) for(let c=y; c<y+w; c++) mapa[r][c] = 0;
         salas.push({x: Math.floor(x + h/2), y: Math.floor(y + w/2)});
     }
-
-    // 3. Conectar salas con pasillos
     for(let i=0; i<salas.length - 1; i++) {
         let s1 = salas[i], s2 = salas[i+1];
-        // Pasillo horizontal
-        let stepY = s1.y < s2.y ? 1 : -1;
-        for(let c=s1.y; c !== s2.y; c += stepY) mapa[s1.x][c] = 0;
-        // Pasillo vertical
-        let stepX = s1.x < s2.x ? 1 : -1;
-        for(let r=s1.x; r !== s2.x; r += stepX) mapa[r][s2.y] = 0;
+        for(let c=Math.min(s1.y, s2.y); c <= Math.max(s1.y, s2.y); c++) mapa[s1.x][c] = 0;
+        for(let r=Math.min(s1.x, s2.x); r <= Math.max(s1.x, s2.x); r++) mapa[r][s2.y] = 0;
     }
 }
 
@@ -99,7 +102,6 @@ function dibujar() {
     }
     document.getElementById('vida-heroe').innerText = heroe.vida;
     document.getElementById('mov-heroe').innerText = heroe.mov;
-    
     let adyacente = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
     document.getElementById('btn-atk').disabled = (turno !== "jugador" || !adyacente);
     document.getElementById('btn-mov').disabled = (turno !== "jugador" || heroe.mov > 0);
@@ -109,13 +111,11 @@ function atacarEnemigo() {
     if (turno !== "jugador") return;
     let en = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
     if (!en) return;
-    
     let ataque = lanzarDadosCombate(heroe.atk, 'ataque');
     let defensa = lanzarDadosCombate(en.def, 'defensa_monstruo');
     let dano = Math.max(0, ataque - defensa);
     en.vida -= dano;
-    
-    document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
+    document.getElementById('log-combate').innerHTML += `<div>Atacas: ${ataque} vs ${dano > 0 ? defensa + ' (Daño: ' + dano + ')' : 'bloqueado'}</div>`;
     if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>¡${en.nombre} derrotado!</div>`; }
     dibujar();
 }
@@ -123,7 +123,7 @@ function atacarEnemigo() {
 function finalizarTurno() {
     if (turno !== "jugador") return;
     turno = "enemigo";
-    document.getElementById('log-combate').innerHTML += `<div>--- Turno del Enemigo ---</div>`;
+    document.getElementById('log-combate').innerHTML += `<div>--- Turno Enemigo ---</div>`;
     dibujar();
     setTimeout(ejecutarTurnoEnemigo, 800);
 }
@@ -133,7 +133,6 @@ function ejecutarTurnoEnemigo() {
         if (!en.vivo) return;
         let distX = heroe.x - en.x;
         let distY = heroe.y - en.y;
-
         if (Math.abs(distX) <= 1 && Math.abs(distY) <= 1) {
             let ataque = lanzarDadosCombate(en.atk, 'ataque');
             let defensa = lanzarDadosCombate(heroe.def, 'defensa_heroe');
@@ -147,11 +146,10 @@ function ejecutarTurnoEnemigo() {
             else if (mapa[en.x][en.y + movY] === 0 && !hayJugadorEn(en.x, en.y + movY) && !hayEnemigoEn(en.x, en.y + movY)) en.y += movY;
         }
     });
-
     turno = "jugador";
-    heroe.mov = 0; 
-    document.getElementById('log-combate').innerHTML += `<div>--- Turno del Jugador ---</div>`;
-    if (heroe.vida <= 0) alert("¡Has muerto! Fin de la partida.");
+    heroe.mov = 0;
+    document.getElementById('log-combate').innerHTML += `<div>--- Turno Jugador ---</div>`;
+    if (heroe.vida <= 0) alert("¡Has muerto!");
     dibujar();
 }
 
@@ -166,7 +164,6 @@ window.addEventListener('keydown', (e) => {
     let nx = heroe.x, ny = heroe.y;
     if(e.key === 'ArrowUp') nx--; if(e.key === 'ArrowDown') nx++;
     if(e.key === 'ArrowLeft') ny--; if(e.key === 'ArrowRight') ny++;
-    
     if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS && mapa[nx][ny] === 0 && !hayEnemigoEn(nx, ny)) {
         heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar();
     }

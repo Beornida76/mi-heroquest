@@ -2,46 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>War Quest</title>
+    <title>War Quest - El Juego</title>
     <style>
         body { background-color: #050505; color: #d1cbc1; font-family: 'Georgia', serif; margin: 0; display: flex; flex-direction: column; align-items: center; }
         
-        /* Pantalla de Selección */
+        /* PANTALLA DE SELECCIÓN */
         #pantalla-seleccion { text-align: center; padding: 40px; max-width: 950px; }
-        h1 { font-size: 4.5em; color: #c69c6d; text-transform: uppercase; text-shadow: 4px 4px 8px #000; margin-bottom: 10px; }
+        h1 { font-size: 4.5em; color: #c69c6d; text-transform: uppercase; text-shadow: 4px 4px 8px #000; margin-bottom: 10px; font-family: 'Times New Roman', serif; }
         .intro-text { font-style: italic; margin-bottom: 40px; font-size: 1.4em; color: #e0d0b0; line-height: 1.6; }
         .grid-heroe { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
         .card { background: #1a1a1a; padding: 25px; border: 2px solid #555; cursor: pointer; transition: 0.4s; text-align: left; border-radius: 8px; }
         .card:hover { border-color: #c69c6d; background: #252525; transform: scale(1.02); }
-        .card h2 { margin-top: 0; color: #c69c6d; border-bottom: 1px solid #444; padding-bottom: 10px; font-size: 1.8em; }
+        .card h2 { margin-top: 0; color: #c69c6d; border-bottom: 1px solid #444; padding-bottom: 10px; }
         .stats { font-size: 1em; margin: 10px 0; color: #e0d0b0; font-weight: bold; }
         .desc { font-size: 0.95em; color: #a0a0a0; line-height: 1.5; margin-top: 10px; }
 
-        /* Contenedor del Juego */
-        #juego-contenedor { display: none; gap: 20px; padding: 20px; }
+        /* PANTALLA DE JUEGO */
+        #juego-contenedor { display: none; gap: 20px; padding: 20px; flex-direction: row; }
         #tablero { display: grid; grid-template-columns: repeat(26, 25px); grid-template-rows: repeat(19, 25px); gap: 1px; background-color: #000; padding: 5px; border: 2px solid #444; }
         .casilla { width: 25px; height: 25px; background-color: #000; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .visible { background-color: #222; }
         .muro { background-color: #333; }
-        .panel { width: 280px; background: #111; padding: 15px; border: 1px solid #333; }
-        #log-combate { height: 150px; overflow-y: auto; background: #000; padding: 10px; font-size: 12px; margin-top: 10px; border: 1px solid #444; }
+        .panel { width: 300px; background: #111; padding: 15px; border: 1px solid #333; color: #d1cbc1; }
+        #log-combate { height: 180px; overflow-y: auto; background: #000; padding: 10px; font-size: 12px; margin-top: 10px; border: 1px solid #444; color: #aaa; }
     </style>
 </head>
 <body>
 
     <div id="pantalla-seleccion">
         <h1>War Quest</h1>
-        <p class="intro-text">"El mundo se sumerge en las sombras. Las hordas del Caos, comandadas por el malvado Zargon, han usurpado las fortalezas ancestrales. ¡Prepárate para la aventura!"</p>
+        <p class="intro-text">"El mundo se sumerge en las sombras. Las hordas del Caos, comandadas por el malvado Zargon, han usurpado las fortalezas ancestrales. Solo un grupo de valientes se atreve a adentrarse en la oscuridad. ¡Desenvaina tu acero y reclama tu destino!"</p>
         <div class="grid-heroe" id="selector"></div>
     </div>
 
     <div id="juego-contenedor">
         <div class="panel">
             <h2 id="turno-txt" style="color: #c69c6d;">Turno: Jugador</h2>
-            <p><strong>Héroe: <span id="nombre-heroe"></span></strong></p>
+            <p><strong><span id="nombre-heroe"></span></strong></p>
             <p>Vida: <span id="vida-heroe"></span> | Mov: <span id="mov-heroe">0</span></p>
-            <button id="btn-mov" onclick="tirarDadosMovimiento()">Tirar Dados</button>
-            <h3>Bitácora</h3>
+            <button id="btn-mov" onclick="tirarDadosMovimiento()">Mover</button>
+            <button id="btn-atk" onclick="atacarEnemigo()" disabled>Atacar</button>
+            <h3>Bitácora de Guerra</h3>
             <div id="log-combate"></div>
         </div>
         <div id="tablero"></div>
@@ -49,18 +50,18 @@
 
     <script>
         const HEROES = {
-            "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "El Guerrero es el pilar de cualquier grupo. Adiestrado en las artes de la guerra, su capacidad para infligir daño lo convierte en un combatiente temido.", info: "Dados de Ataque: 3 | Dados de Defensa: 2" },
-            "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Experto en el arte de la exploración, posee una habilidad innata para detectar trampas. Su estoicismo le permite aguantar en el fragor de la batalla.", info: "Dados de Ataque: 2 | Dados de Defensa: 2" },
-            "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Guerrero de gracia sobrenatural, maestro de la agilidad. Capaz de realizar movimientos rápidos y precisos antes de que el enemigo reaccione.", info: "Dados de Ataque: 2 | Dados de Defensa: 2" },
-            "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de los secretos arcanos. Su sabiduría y sus poderosos conjuros pueden alterar el curso de la batalla en un instante.", info: "Dados de Ataque: 1 | Dados de Defensa: 2" }
+            "Guerrero": { vida: 8, atk: 3, def: 2, icono: "🛡️", desc: "Maestro del combate cuerpo a cuerpo. Su fuerza bruta le permite infligir gran daño.", info: "Ataque: 3 dados | Defensa: 2 dados" },
+            "Enano": { vida: 7, atk: 2, def: 2, icono: "⛏️", desc: "Experto en exploración y trampas. Extremadamente resistente en el fragor de la batalla.", info: "Ataque: 2 dados | Defensa: 2 dados" },
+            "Elfo": { vida: 6, atk: 2, def: 2, icono: "🏹", desc: "Ágil y diestro, combina el dominio de la espada con una velocidad sobrenatural.", info: "Ataque: 2 dados | Defensa: 2 dados" },
+            "Mago": { vida: 4, atk: 1, def: 2, icono: "🧙", desc: "Poseedor de secretos arcanos. Su mente es su arma más poderosa contra el Caos.", info: "Ataque: 1 dado | Defensa: 2 dados" }
         };
 
         let heroe, FILAS = 19, COLS = 26;
         let mapa = Array.from({ length: FILAS }, () => Array(COLS).fill(1));
         let explorado = Array.from({ length: FILAS }, () => Array(COLS).fill(false));
-        let enemigos = [{nombre: "Orco", x: 5, y: 5, vivo: true, icono: "👹"}];
+        let enemigos = [{nombre: "Orco", vida: 2, atk: 3, def: 1, icono: "👹", x: 4, y: 4, vivo: true}];
 
-        // Inicializar Selección
+        // Generar Selección
         const selector = document.getElementById('selector');
         for (let nombre in HEROES) {
             let h = HEROES[nombre];
@@ -80,8 +81,23 @@
         }
 
         function crearMapa() {
-            const rooms = [{x: 1, y: 1, w: 6, h: 5}, {x: 15, y: 1, w: 6, h: 5}];
-            rooms.forEach(q => { for(let i=q.y; i<q.y+q.h; i++) for(let j=q.x; j<q.x+q.w; j++) mapa[i][j] = 0; });
+            // Habitaciones básicas
+            [{x: 1, y: 1, w: 5, h: 5}, {x: 10, y: 1, w: 5, h: 5}].forEach(q => {
+                for(let i=q.y; i<q.y+q.h; i++) for(let j=q.x; j<q.x+q.w; j++) mapa[i][j] = 0;
+            });
+            for(let i=1; i<7; i++) mapa[i][6] = 0; // Pasillo
+        }
+
+        function lanzarDadosCombate(cantidad, tipo) {
+            let aciertos = 0;
+            for(let i=0; i<cantidad; i++) {
+                let cara = Math.floor(Math.random() * 6) + 1; // 1-6
+                // HeroQuest Dice: 1-3 Calavera, 4-5 Escudo Blanco, 6 Escudo Negro
+                if (tipo === 'ataque') { if(cara <= 3) aciertos++; } // Calaveras
+                else if (tipo === 'defensa_heroe') { if(cara === 4 || cara === 5) aciertos++; } // Blanco
+                else if (tipo === 'defensa_monstruo') { if(cara === 6) aciertos++; } // Negro
+            }
+            return aciertos;
         }
 
         function dibujar() {
@@ -102,6 +118,19 @@
             }
             document.getElementById('vida-heroe').innerText = heroe.vida;
             document.getElementById('mov-heroe').innerText = heroe.mov;
+            let enemigoCerca = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1);
+            document.getElementById('btn-atk').disabled = !enemigoCerca;
+        }
+
+        function atacarEnemigo() {
+            let en = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1);
+            let ataque = lanzarDadosCombate(heroe.atk, 'ataque');
+            let defensa = lanzarDadosCombate(en.def, 'defensa_monstruo');
+            let dano = Math.max(0, ataque - defensa);
+            en.vida -= dano;
+            document.getElementById('log-combate').innerHTML += `<div>Atacas a ${en.nombre}: ${ataque} vs ${defensa} (Daño: ${dano})</div>`;
+            if (en.vida <= 0) { en.vivo = false; document.getElementById('log-combate').innerHTML += `<div>${en.nombre} derrotado!</div>`; }
+            dibujar();
         }
 
         function tirarDadosMovimiento() {
@@ -115,8 +144,8 @@
             let nx = heroe.x, ny = heroe.y;
             if(e.key === 'ArrowUp') nx--; if(e.key === 'ArrowDown') nx++;
             if(e.key === 'ArrowLeft') ny--; if(e.key === 'ArrowRight') ny++;
-            if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS && mapa[nx][ny] === 0) { 
-                heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar(); 
+            if(nx>=0 && nx<FILAS && ny>=0 && ny<COLS && mapa[nx][ny] === 0) {
+                heroe.x = nx; heroe.y = ny; heroe.mov--; dibujar();
             }
             if(heroe.mov === 0) document.getElementById('btn-mov').disabled = false;
         });

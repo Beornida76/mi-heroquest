@@ -1,8 +1,8 @@
 const HEROES = {
-    "Guerrero": { vida: 8, atk: 3, def: 2, icon: "🛡️", desc: "Ataca con 3 dados y defiende con 2." },
-    "Enano": { vida: 7, atk: 2, def: 2, icon: "⛏️", desc: "Resistente y equilibrado en combate." },
-    "Elfo": { vida: 6, atk: 2, def: 2, icon: "🏹", desc: "Ágil combatiente de la naturaleza." },
-    "Mago": { vida: 4, atk: 1, def: 2, icon: "🧙", desc: "Físicamente débil pero sabio." }
+    "Guerrero": { vida: 8, atk: 3, def: 2, icon: "🛡️", desc: "Un formidable campeón de primera línea entrenado en el arte del acero puro y la resistencia." },
+    "Enano": { vida: 7, atk: 2, def: 2, icon: "⛏️", desc: "Robusto excavador de túneles capaz de desactivar trampas ocultas y soportar duros castigos." },
+    "Elfo": { vida: 6, atk: 2, def: 2, icon: "🏹", desc: "Ágil guardián de los bosques que combina destreza física con sutiles conocimientos mágicos." },
+    "Mago": { vida: 4, atk: 1, def: 2, icon: "🧙", desc: "Erudito de las artes arcanas; físicamente muy frágil pero poseedor de una mente brillante." }
 };
 
 const BESTIARIO = [
@@ -22,9 +22,34 @@ let haAtacadoEsteTurno = false;
 document.addEventListener('DOMContentLoaded', () => {
     const selectorContenedor = document.getElementById('selector');
     Object.keys(HEROES).forEach(clase => {
+        let h = HEROES[clase];
+        
+        let dadosAtaque = "🎲".repeat(h.atk);
+        let dadosDefensa = "🎲".repeat(h.def);
+        
         let card = document.createElement('div');
         card.className = 'card';
-        card.innerHTML = `<h3>${HEROES[clase].icon} ${clase}</h3><p>${HEROES[clase].desc}</p>`;
+        card.innerHTML = `
+            <div>
+                <div class="card-icono">${h.icon}</div>
+                <h3>${clase}</h3>
+                <p class="card-desc">"${h.desc}"</p>
+            </div>
+            <div class="card-atributos">
+                <div class="card-attr-item">
+                    <span>❤️ Puntos de Vida:</span>
+                    <span class="attr-vida">${h.vida}</span>
+                </div>
+                <div class="card-attr-item">
+                    <span>⚔️ Ataque:</span>
+                    <span class="attr-dados">${dadosAtaque}</span>
+                </div>
+                <div class="card-attr-item">
+                    <span>🛡️ Defensa:</span>
+                    <span class="attr-dados">${dadosDefensa}</span>
+                </div>
+            </div>
+        `;
         card.onclick = () => iniciarPartida(clase);
         selectorContenedor.appendChild(card);
     });
@@ -266,7 +291,6 @@ function finalizarTurno() {
 
     enemigos.forEach(monstruo => {
         if (!monstruo.vivo) return;
-        // Evitamos que los monstruos ataquen si el héroe ya ha muerto este turno
         if (heroe.vida <= 0) return; 
 
         let pasos = 0;
@@ -296,7 +320,6 @@ function finalizarTurno() {
         }
     });
 
-    // Si el héroe sobrevive al turno enemigo
     if (heroe.vida > 0) {
         turno = "jugador";
         heroe.mov = 0;
@@ -318,13 +341,11 @@ function ejecutarAtaqueEnemigo(monstruo) {
         mensajeEnemigo = `🩸 El ${monstruo.nombre} te inflige <span style="color:red; font-weight:bold;">${dañoNeto}</span> de daño.`;
         log(`¡${monstruo.nombre} te ataca!: ${calaveras} 💀 vs ${escudos} 🛡️. Recibes ${dañoNeto} daño.`, "log-defensa");
         
-        // Comprobar muerte del jugador
         if (heroe.vida <= 0) {
             log("💀 ¡Has muerto! Fin de la partida.", "log-muerte");
             turno = "muerto";
-            dibujarTablero(); // Actualiza el 0 en la vida visualmente
+            dibujarTablero(); 
             
-            // Ligerísima pausa de 1.5s para ver el impacto antes del fundido a rojo
             setTimeout(() => {
                 document.getElementById('juego-contenedor').style.display = 'none';
                 document.getElementById('pantalla-muerte').style.display = 'flex';
@@ -342,7 +363,6 @@ function ejecutarAtaqueEnemigo(monstruo) {
     `;
 }
 
-// Nueva función invocada por el botón de la Pantalla de Muerte
 function volverAlMenu() {
     document.getElementById('pantalla-muerte').style.display = 'none';
     document.getElementById('pantalla-seleccion').style.display = 'block';

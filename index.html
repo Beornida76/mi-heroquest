@@ -2,32 +2,40 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>War Quest - Versión Definitiva</title>
+    <title>War Quest - Versión Completa con Combate</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="pantalla-seleccion">
         <h1>War Quest</h1>
-        <p>Selecciona a tu héroe para entrar a la mazmorra:</p>
+        <p class="subtitulo">Selecciona a tu héroe para adentrarte en la mazmorra procedural:</p>
         <div id="selector" class="grid-heroe"></div>
     </div>
 
     <div id="juego-contenedor" style="display:none;">
         <div id="tablero"></div>
+        
         <div class="panel-lateral">
             <div id="info-heroe">
                 <h2 id="nombre-heroe"></h2>
-                <p id="desc-heroe"></p>
-                <p>Vida: <span id="vida-heroe"></span></p>
-                <p>Movimiento: <span id="mov-heroe"></span></p>
+                <p id="desc-heroe" class="descripcion"></p>
+                <div class="stats-box">
+                    <p>❤️ Vida Actual: <span id="vida-heroe" class="stat-val"></span></p>
+                    <p>👣 Movimiento Restante: <span id="mov-heroe" class="stat-val"></span></p>
+                </div>
             </div>
+            
             <div class="controles">
-                <button onclick="tirarDados()">Tirar Dados</button>
-                <button onclick="finalizarTurno()">Finalizar Turno</button>
+                <button id="btn-dados" onclick="tirarDados()">🎲 Tirar Dados Movimiento</button>
+                <button id="btn-atacar" onclick="atacarEnemigoAdyacente()">⚔️ ACCIÓN: Atacar</button>
+                <button id="btn-turno" onclick="finalizarTurno()">🛡️ Finalizar Turno</button>
             </div>
+            
+            <h3>Historial de la Mazmorra</h3>
             <div id="log-combate"></div>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>

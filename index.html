@@ -8,7 +8,7 @@
 <body>
     <div id="pantalla-seleccion">
         <h1 id="titulo-juego">War Quest</h1>
-        <p class="intro-texto">Elige a tu héroe:</p>
+        <p class="intro-texto">Elige a tu héroe para adentrarte en la mazmorra:</p>
         <div id="selector" class="grid-heroe"></div>
     </div>
 
@@ -19,17 +19,11 @@
             <p>Vida: <span id="vida-heroe"></span></p>
             <p>Movimiento: <span id="mov-heroe"></span></p>
             <button id="btn-mov" onclick="tirarDadosMovimiento()">Tirar Dados Movimiento</button>
-            <button id="btn-atk" onclick="atacarEnemigo()">Atacar</button>
+            <button id="btn-atk" onclick="atacarEnemigo()" disabled>Atacar</button>
             <button onclick="finalizarTurno()">Finalizar Turno</button>
             <div id="log-combate"></div>
         </div>
     </div>
-
-    <div id="pantalla-derrota" style="display:none;">
-        <h1>LA MAZMORRA TE HA RECLAMADO</h1>
-        <button onclick="location.reload()">Volver a Intentar</button>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>

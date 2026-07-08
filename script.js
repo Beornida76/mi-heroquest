@@ -72,9 +72,14 @@ function dibujar() {
     }
     document.getElementById('vida-heroe').innerText = heroe.vida;
     document.getElementById('mov-heroe').innerText = heroe.mov;
+    
+    // LOGICA DE BOTONES CORREGIDA
     let adyacente = enemigos.find(en => en.vivo && Math.abs(en.x - heroe.x) <= 1 && Math.abs(en.y - heroe.y) <= 1 && !(en.x === heroe.x && en.y === heroe.y));
+    
+    // Botón atacar: habilitado solo en tu turno y si hay enemigo cerca
     document.getElementById('btn-atk').disabled = (turno !== "jugador" || !adyacente);
-    document.getElementById('btn-mov').disabled = (turno !== "jugador" || heroe.mov === 0);
+    // Botón mover: habilitado solo en tu turno y si movimiento es 0 (te obliga a tirar primero)
+    document.getElementById('btn-mov').disabled = (turno !== "jugador" || heroe.mov > 0);
 }
 
 function atacarEnemigo() {
@@ -124,6 +129,7 @@ function ejecutarTurnoEnemigo() {
     });
 
     turno = "jugador";
+    heroe.mov = 0; // RESETEAR MOVIMIENTO AL EMPEZAR TURNO
     document.getElementById('log-combate').innerHTML += `<div>--- Turno del Jugador ---</div>`;
     if (heroe.vida <= 0) alert("¡Has muerto! Fin de la partida.");
     dibujar();
@@ -132,7 +138,6 @@ function ejecutarTurnoEnemigo() {
 function tirarDadosMovimiento() {
     if (turno !== "jugador") return;
     heroe.mov = Math.floor(Math.random()*6) + Math.floor(Math.random()*6) + 2;
-    document.getElementById('btn-mov').disabled = true;
     dibujar();
 }
 
